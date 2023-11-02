@@ -4,11 +4,8 @@ import Card from '@mui/material/Card';
 import CardHeader from '@mui/material/CardHeader';
 import { styled, useTheme } from '@mui/material/styles';
 
-import Chart, { useChart } from '../../components/chart';
-
 import { fNumber } from '../../utils/format-number';
-
-// ----------------------------------------------------------------------
+import Chart, { useChart } from '../../components/chart';
 
 const CHART_HEIGHT = 400;
 
@@ -25,8 +22,6 @@ const StyledChart = styled(Chart)(({ theme }) => ({
     top: `calc(${CHART_HEIGHT - LEGEND_HEIGHT}px) !important`,
   },
 }));
-
-// ----------------------------------------------------------------------
 
 export default function AppCurrentVisits({ title, subheader, chart, ...other }) {
   const theme = useTheme();
