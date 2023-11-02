@@ -1,0 +1,312 @@
+{
+  "combos": [
+    {
+      "id": 1,
+      "imagem": "https://s3-us-west-2.amazonaws.com/anotaai/produtos/1606493132361blob",
+      "sabor": "Pizza Calabresa + Refrigerante",
+      "valor": 24.9,
+      "ingredientes": "Calabresa, Queijo, Mussarela, Orégano",
+      "quantidade": 1
+    },
+    {
+      "id": 2,
+      "imagem": "https://s3-us-west-2.amazonaws.com/anotaai/produtos/1643916486366blob",
+      "sabor": "Pizza Pepperoni + Refrigerante",
+      "valor": 24.9,
+      "ingredientes": "Peperoni, Queijo, Mussarela, Orégano",
+      "quantidade": 1
+    },
+    {
+      "id": 3,
+      "imagem": "https://s3-us-west-2.amazonaws.com/anotaai/produtos/1606493213786blob",
+      "sabor": "Pizza Mista + Refrigerante",
+      "valor": 24.9,
+      "ingredientes": "Queijo, Mussarela, Orégano",
+      "quantidade": 1
+    },
+    {
+      "id": 4,
+      "imagem": "https://s3-us-west-2.amazonaws.com/anotaai/produtos/1610659117583blob",
+      "sabor": "Pizza 3 Queijos + Refrigerante",
+      "valor": 29.9,
+      "ingredientes": "Queijo Coalho, Mussarela, Brie, Orégano",
+      "quantidade": 1
+    },
+    {
+      "id": 5,
+      "imagem": "https://s3-us-west-2.amazonaws.com/anotaai/produtos/1643916347513blob.webp",
+      "sabor": "Pizza Carne do Sol + Refrigerante",
+      "valor": 29.9,
+      "ingredientes": "Carne do Sol, Queijo, Mussarela, Orégano",
+      "quantidade": 1
+    }
+  ],
+
+  "pizzas": [
+    {
+      "id": 6,
+      "imagem": "https://s3-us-west-2.amazonaws.com/anotaai/produtos/1606493132361blob",
+      "sabor": "Calabresa",
+      "valor": 19.9,
+      "ingredientes": "Calabresa, Queijo, Mussarela, Orégano",
+      "quantidade": 1
+    },
+    {
+      "id": 7,
+      "imagem": "https://s3-us-west-2.amazonaws.com/anotaai/produtos/1643916486366blob",
+      "sabor": "Pepperoni",
+      "valor": 19.9,
+      "ingredientes": "Peperoni, Queijo, Mussarela, Orégano",
+      "quantidade": 1
+    },
+    {
+      "id": 8,
+      "imagem": "https://s3-us-west-2.amazonaws.com/anotaai/produtos/1606493213786blob",
+      "sabor": "Mista",
+      "valor": 19.9,
+      "ingredientes": "Queijo, Mussarela, Orégano",
+      "quantidade": 1
+    },
+    {
+      "id": 9,
+      "imagem": "https://s3-us-west-2.amazonaws.com/anotaai/produtos/1606493179588blob",
+      "sabor": "Mussarela",
+      "valor": 19.9,
+      "ingredientes": "Mussarela, Tomate, Orégano",
+      "quantidade": 1
+    },
+    {
+      "id": 10,
+      "imagem": "https://s3-us-west-2.amazonaws.com/anotaai/produtos/1643916347513blob.webp",
+      "sabor": "Carne de Sol",
+      "valor": 24.9,
+      "ingredientes": "Carne do Sol, Queijo, Mussarela, Orégano",
+      "quantidade": 1
+    },
+    {
+      "id": 11,
+      "imagem": "https://s3-us-west-2.amazonaws.com/anotaai/produtos/1610659117583blob",
+      "sabor": "3 Queijos",
+      "valor": 24.9,
+      "ingredientes": "Queijo Coalho, Mussarela, Brie, Orégano",
+      "quantidade": 1
+    }
+  ],
+
+  "hamburger": [
+    {
+      "id": 12,
+      "imagem": "https://s3-us-west-2.amazonaws.com/anotaai/produtos/1657164832463blob",
+      "sabor": "Smash Tradicional",
+      "valor": 14.9,
+      "ingredientes": "Carne de 100g smash, cheddar, molho especial no pao brioche",
+      "quantidade": 1
+    },
+    {
+      "id": 13,
+      "imagem": "https://s3-us-west-2.amazonaws.com/anotaai/produtos/1657162955103blob",
+      "sabor": "Smash Bacon",
+      "valor": 16.9,
+      "ingredientes": "Carne de 100g smash, cheddar, bacon, molho especial no pao brioche",
+      "quantidade": 1
+    },
+    {
+      "id": 14,
+      "imagem": "https://s3-us-west-2.amazonaws.com/anotaai/produtos/1657163369379blob",
+      "sabor": "Churrasco",
+      "valor": 19.9,
+      "ingredientes": "Carne de 100g smash Grelhada, cheddar, molho especial no pao brioche",
+      "quantidade": 1
+    },
+    {
+      "id": 15,
+      "imagem": "https://s3-us-west-2.amazonaws.com/anotaai/produtos/1657163483018blob",
+      "sabor": "Duplo Smash Bacon",
+      "valor": 22.9,
+      "ingredientes": "2x Carne de 100g smash, cheddar, 2x Bacon, molho especial no pao brioche",
+      "quantidade": 1
+    },
+    {
+      "id": 16,
+      "imagem": "https://s3-us-west-2.amazonaws.com/anotaai/produtos/1659133028512blob",
+      "sabor": "Mega Smash",
+      "valor": 26.9,
+      "ingredientes": "2x Carne de 120g smash, cheddar, 2x Bacon, molho especial no pao brioche",
+      "quantidade": 1
+    },
+    {
+      "id": 17,
+      "imagem": "https://s3-us-west-2.amazonaws.com/anotaai/produtos/1659130674561blob",
+      "sabor": "Double Cheese",
+      "valor": 29.9,
+      "ingredientes": "2x Carne de 150g smash, cheddar, molho especial no pao brioche",
+      "quantidade": 1
+    }
+  ],
+
+  "paoArabe": [
+    {
+      "id": 18,
+      "imagem": "https://www.fbgcdn.com/pictures/81072610-a150-4f05-8420-1545af60994a_d3.jpg",
+      "sabor": "Pão Árabe Frango",
+      "valor": 14.9,
+      "ingredientes": "Frango Especial, cheddar, molho",
+      "quantidade": 1
+    },
+    {
+      "id": 19,
+      "imagem": "https://www.fbgcdn.com/pictures/799d15db-dd45-459e-9435-40af70d2a0c8.jpg",
+      "sabor": "Pão Árabe Super Frango",
+      "valor": 19.9,
+      "ingredientes": "Frango Especial, coalho, cheddar, molho",
+      "quantidade": 1
+    },
+    {
+      "id": 20,
+      "imagem": "https://www.fbgcdn.com/pictures/a6110bf6-449a-4c5d-84bd-fcc292b25f2f_d3.jpg",
+      "sabor": "Pão Árabe Nordestino",
+      "valor": 24.9,
+      "ingredientes": "Frango Especial, carne, coalho, cheddar, molho",
+      "quantidade": 1
+    },
+    {
+      "id": 21,
+      "imagem": "https://www.fbgcdn.com/pictures/f83fb99a-64aa-4848-b746-b6dbb9a08030_d3.jpg",
+      "sabor": "Pão Árabe Monstrão",
+      "valor": 29.9,
+      "ingredientes": "Frango Especial, 2x carne 150 gr, coalho, cheddar, molho",
+      "quantidade": 1
+    }
+  ],
+
+  "drinks": [
+    {
+      "id": 22,
+      "imagem": "https://client-assets.anota.ai/produtos/1688936873587blob",
+      "sabor": "Água 300ml",
+      "valor": 2.9,
+      "ingredientes": "Bebida Gelada",
+      "quantidade": 1
+    },
+    {
+      "id": 23,
+      "imagem": "https://s3-us-west-2.amazonaws.com/anotaai/produtos/1660517293657blob",
+      "sabor": "Coca-cola 600ml",
+      "valor": 5.9,
+      "ingredientes": "Bebida Gelada",
+      "quantidade": 1
+    },
+    {
+      "id": 24,
+      "imagem": "https://client-assets.anota.ai/produtos/1688772009888blob",
+      "sabor": "Pepsi 1L",
+      "valor": 7.9,
+      "ingredientes": "Bebida Gelada",
+      "quantidade": 1
+    },
+    {
+      "id": 25,
+      "imagem": "https://s3-us-west-2.amazonaws.com/anotaai/produtos/1660517528944blob.webp",
+      "sabor": "Coca-cola 1L",
+      "valor": 8.9,
+      "ingredientes": "Bebida Gelada",
+      "quantidade": 1
+    },
+    {
+      "id": 26,
+      "imagem": "https://s3-us-west-2.amazonaws.com/anotaai/produtos/1660517976941blob",
+      "sabor": "São Geraldo 1L",
+      "valor": 8.9,
+      "ingredientes": "Bebida Gelada",
+      "quantidade": 1
+    },
+    {
+      "id": 27,
+      "imagem": "https://s3-us-west-2.amazonaws.com/anotaai/produtos/1660517731434blob",
+      "sabor": "Coca-cola 2L",
+      "valor": 14.9,
+      "ingredientes": "Bebida Gelada",
+      "quantidade": 1
+    }
+  ],
+  "adicionais": {
+    "combos": [
+      {
+        "name": "Calabresa (100gr)",
+        "valor": 2.5,
+        "qtde": 0
+      },
+      { "name": "Coalho (100gr)", "valor": 2.0, "qtde": 0 },
+      { "name": "Cheddar (100gr)", "valor": 3.0, "qtde": 0 }
+    ],
+    "pizza": [
+      {
+        "name": "Carne do sol (100gr)",
+        "valor": 1.9,
+        "qtde": 0
+      },
+      {
+        "name": "Mussarela (100gr)",
+        "valor": 1.9,
+        "qtde": 0
+      },
+      {
+        "name": "Catupiry (100gr)",
+        "valor": 1.9,
+        "qtde": 0
+      }
+    ],
+    "hamburguer": [
+      { "name": "Smash (100gr)", "valor": 1.9, "qtde": 0 },
+      {
+        "name": "Molho da casa (100gr)",
+        "valor": 1.9,
+        "qtde": 0
+      },
+      { "name": "Bacon (100gr)", "valor": 1.9, "qtde": 0 }
+    ],
+    "paoArabe": [
+      {
+        "name": "Carne Trinchada (100gr)",
+        "valor": 1.9,
+        "qtde": 0
+      },
+      {
+        "name": "Frango (100gr)",
+        "valor": 1.9,
+        "qtde": 0
+      },
+      {
+        "name": "Carne de Hamburguer (100gr)",
+        "valor": 1.9,
+        "qtde": 0
+      }
+    ],
+    "bebidas": []
+  },
+  "opcionais": {
+    "combos": [
+      { "opcao": "Sem Borda", "valorAdc": 0 },
+      { "opcao": "Borda com Chocolate", "valorAdc": 2 },
+      { "opcao": "Borda com Catupiry", "valorAdc": 3 }
+    ],
+    "pizza": [
+      { "opcao": "Sem Borda", "valorAdc": 0 },
+      { "opcao": "Borda com Chocolate", "valorAdc": 2 },
+      { "opcao": "Borda com Catupiry", "valorAdc": 3 }
+    ],
+    "hamburguer": [
+      { "opcao": "Pão Brioche", "valorAdc": 0 },
+      { "opcao": "Pão Batata", "valorAdc": 3.9 },
+      { "opcao": "Pão Australiano", "valorAdc": 3.9 }
+    ],
+    "paoArabe": [
+      { "opcao": "Pão Arabe", "valorAdc": 0 },
+      { "opcao": "Rap10 Intregral", "valorAdc": 1.9 },
+      { "opcao": "Rap10 Multigrãos", "valorAdc": 1.9 }
+    ],
+    "bebidas": [
+      
+    ]
+  }
+}

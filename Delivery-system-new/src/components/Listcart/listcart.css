@@ -1,0 +1,5 @@
+.ImgCardListCard{
+    height: 100% !important;
+    width: 25% !important;
+    object-fit: cover !important;
+}

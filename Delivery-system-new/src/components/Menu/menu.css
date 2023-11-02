@@ -1,0 +1,175 @@
+
+
+.inputbox {
+  height: 50px;
+  min-height: 50px;
+  position: relative;
+  top: 35%;
+}
+
+.boxInputMenu label {
+  padding-left: 2rem !important;
+  color: #000 !important;
+  left: 2px !important;
+  top: -6px !important;
+  transform-origin: -94px 47px !important;
+}
+
+.css-9ddj71-MuiInputBase-root-MuiOutlinedInput-root {
+  height: 42px !important;
+}
+
+#sectionsmenu
+  .css-145v6pe-MuiButtonBase-root-MuiTabScrollButton-root.Mui-disabled {
+  display: none;
+}
+#sectionsmenu .css-145v6pe-MuiButtonBase-root-MuiTabScrollButton-root {
+  opacity: 0 !important;
+  width: 0 !important;
+}
+#sectionsmenu .css-1aquho2-MuiTabs-indicator {
+  background-color: transparent !important;
+}
+.MuiTabs-indicator .css-ttwr4n {
+  background-color: transparent !important;
+}
+.css-ttwr4n {
+  background-color: transparent !important;
+}
+.css-1q0ig8p {
+  display: none !important;
+}
+#sectionsmenu .tabs {
+  width: 25%;
+  color: #29292c !important;
+  border-radius: 25px !important;
+  border: 1px #f76d26 solid;
+  margin-right: 5px;
+  margin-left: 5px;
+  box-shadow: 5px 4px 5px 2px rgba(0, 0, 0, 0.2),
+    5px 4px 5px 2px rgba(0, 0, 0, 0.14), 5px 4px 5px 2px rgba(0, 0, 0, 0.12) !important;
+}
+
+#sectionsmenu .css-69z67c-MuiTabs-scroller {
+  display: flex;
+  height: 100% !important;
+  align-items: center;
+}
+#sectionsmenu .css-12qnib {
+  display: flex;
+  height: 100% !important;
+  align-items: center;
+}
+.css-12qnib {
+  display: flex !important;
+  height: 100% !important;
+  align-items: center !important;
+}
+#sectionsmenu .css-1q0ig8p.Mui-disabled {
+  display: none;
+}
+
+#cardlistmenu {
+  height: 50%;
+  overflow: auto !important;
+}
+.MuiTypography-root.MuiTypography-body1.css-ahj2mt-MuiTypography-root {
+  height: 150%;
+}
+.css-2ulfj5-MuiTypography-root {
+  margin: 0;
+  font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+  font-weight: 700;
+  font-size: 24%;
+  line-height: 1.6;
+  letter-spacing: 0.0075em;
+}
+
+.cardMenu {
+  position: relative;
+  display: flex;
+  background-color: #fae9de !important;
+  height: 11rem;
+  max-width: 580px;
+  justify-content: flex-start;
+  flex-direction: row;
+  align-items: center;
+  border-radius: 29px !important;
+  border: 5px solid #e75603ba !important;
+  margin: 5px 0 10px 0;
+  box-shadow: 2px 8px 7px 5px #0003, 2px 2px 3px -1px #00000024,
+    2px 6px 4px #0000001f !important;
+}
+
+.cardContent {
+  position: absolute;
+  display: flex;
+  background-color: #fae9de;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  flex-direction: row;
+  padding: 0 !important;
+}
+.cardContent > img {
+  width: 25%;
+  height: 100%;
+  object-fit: cover;
+}
+.descriptionCard {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  align-items: start;
+  background-color: #fae9de;
+  height: 100%;
+  width: 100%;
+  padding-left: 1rem;
+}
+.descriptionCard
+  .MuiTypography-root.MuiTypography-body1.css-ahj2mt-MuiTypography-root {
+  height: auto !important;
+}
+.priceAndIcons {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  width: 94%;
+}
+.priceAndIcons .iconAddProduct {
+  width: 35%;
+  height: 35px;
+  border-radius: 10px;
+  padding: 2px;
+  background-color: #fb6c1a;
+  cursor: pointer;
+}
+.priceAndIcons .iconFavoriteMenu {
+  position: absolute;
+  right: 25%;
+  display: flex;
+}
+.priceAndIcons .iconFavoriteMenu:hover {
+  color: #f76d26;
+}
+
+.boxInputMenu input {
+  padding: 10.5px 14px !important;
+  padding-left: 2.8rem !important;
+}
+fieldset {
+  border-radius: 15px !important;
+  box-shadow: 4px 5px 9px 0px rgba(0, 0, 0, 0.75);
+  border-color: #f46c26 !important;
+}
+
+.iconSearchFilterMenu {
+  position: absolute;
+  left: 0.8rem !important;
+  top: 0.7rem !important;
+  color: #fb6c1a !important;
+  justify-content: center;
+  flex-wrap: nowrap;
+  flex-direction: column;
+}

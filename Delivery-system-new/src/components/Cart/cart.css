@@ -1,0 +1,194 @@
+.footer {
+  display: flex;
+  width: 100% !important;
+  position: relative;
+  bottom: 0px;
+  height: 100%;
+  justify-content: center;
+  align-items: flex-end;
+  flex-direction: row;
+  align-content: center;
+  flex-wrap: nowrap;
+  z-index: 3;
+}
+.footer .contentFooter {
+  display: flex;
+  width: 100%;
+  background-color: #fbe9dd;
+}
+.footer .iconsfooter {
+  color: #29292c !important;
+}
+#cartcount {
+  display: flex;
+  border-radius: 50%;
+  width: 20px !important;
+  background-color: #29292c;
+  color: #fb6c1a;
+  height: 20px;
+  position: absolute;
+  top: 1%;
+  left: 18%;
+  justify-content: center;
+  align-items: center;
+}
+
+#displayItems {
+  overflow: hidden;
+  display: flex;
+  height: 90vh;
+  max-width: 600px;
+  width: 100%;
+  background-color: #fb6c1a;
+  border-radius: 30px 30px 0 0;
+  position: absolute;
+  bottom: -100vh;
+  transition: 1s;
+  flex-direction: column;
+  align-items: center;
+  z-index: 3;
+}
+
+.displayItemson {
+  bottom: -2vh !important;
+  transition: 1s;
+}
+.displayItemson .btnreturnpurchase {
+  color: #f7e9e1 !important;
+  background-color: #0bb15e !important;
+  border-radius: 12px !important;
+  border: 1px solid #fae9de !important;
+  width: 10rem !important;
+  max-width: 375px !important;
+  min-height: 50px;
+  box-shadow: 5px 4px 5px 2px rgba(0, 0, 0, 0.2),
+    5px 4px 5px 2px rgba(0, 0, 0, 0.14), 5px 4px 5px 2px rgba(0, 0, 0, 0.12) !important;
+}
+.displayItemson .btncheckout {
+  right: 0rem;
+  bottom: -3rem;
+  position: absolute;
+  color: #f7e9e1 !important;
+  background-color: #f76d26 !important;
+  border-radius: 13px !important;
+  border: 1px solid #fae9de !important;
+  width: 100% !important;
+  box-shadow: 5px 4px 5px 2px rgba(0, 0, 0, 0.2),
+    5px 4px 5px 2px rgba(0, 0, 0, 0.14), 5px 4px 5px 2px rgba(0, 0, 0, 0.12) !important;
+}
+
+#iconcart-list {
+  max-width: none;
+  width: 100% !important;
+  background-color: #f76d26;
+  position: absolute;
+  border: 1px solid #fae9de !important;
+  border-radius: 27px 28px 0 0;
+  z-index: 1;
+}
+.cartButtons {
+  width: 46%;
+  height: 100px;
+  display: flex;
+  flex-flow: column nowrap;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  bottom: 3rem;
+  right: 26.5%;
+}
+
+.cartButtons button {
+  padding: 10px;
+}
+
+.cartButtons button:first-child {
+  margin-bottom: 10px;
+}
+.cardIconCarinho {
+  display: flex;
+  position: absolute;
+  top: 2%;
+}
+#btnCartIconCarrinho {
+  position: absolute;
+  color: #fae9de !important;
+}
+#modalCadastro {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #fae9de;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  max-width: 600px;
+  height: 40%;
+  min-height: 276px;
+  border: 6px solid #e5c7b3 !important;
+  border-radius: 30px;
+  box-shadow: 5px 4px 5px 2px rgba(0, 0, 0, 0.2),
+    5px 4px 5px 2px rgba(0, 0, 0, 0.14), 5px 4px 5px 2px rgba(0, 0, 0, 0.12);
+}
+#modalContent {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: space-evenly;
+}
+
+#InputModal {
+  height: 40%;
+  width: 100%;
+  gap: 15px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.inputModalDados {
+  font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+  font-size: large;
+  height: 50%;
+  width: 85%;
+  border-radius: 13px;
+  position: relative;
+  padding-left: 15%;
+  text-transform: capitalize;
+  border: 1px #f46c26 solid;
+}
+
+.iconTelefoneInput {
+  position: absolute;
+  top: 17.2%;
+  left: 11%;
+}
+.iconTelefoneName {
+  position: absolute;
+  top: 37.9%;
+  left: 11%;
+}
+#transition-modal-description {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  align-items: center;
+}
+.btnIrParaPagamento {
+  color: #201e1d !important;
+  border: 1px #f46c26 solid !important;
+  border-radius: 11px !important;
+}
+.btnIrParaPagamento:hover {
+  background-color: #f76d26 !important;
+  color: #f9e9df !important;
+}
