@@ -1,9 +1,9 @@
 // import { faker } from '@faker-js/faker';
 
-import Container from '@mui/material/Container';
+import Container from "@mui/material/Container";
 // import Grid from '@mui/material/Unstable_Grid2';
-import Typography from '@mui/material/Typography';
-
+import Typography from "@mui/material/Typography";
+import Header from "../../../layouts/dashboard/header";
 // import AppTasks from '../app-tasks';
 // import AppNewsUpdate from '../app-news-update';
 // import Iconify from '../../../components/iconify';
@@ -20,6 +20,7 @@ import Typography from '@mui/material/Typography';
 export default function AppView() {
   return (
     <Container maxWidth="xl">
+      <Header />
       <Typography variant="h4" sx={{ mb: 5 }}>
         Hi, Welcome back 👋
       </Typography>
