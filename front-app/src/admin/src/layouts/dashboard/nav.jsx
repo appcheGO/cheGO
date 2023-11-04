@@ -13,11 +13,11 @@ import ListItemButton from '@mui/material/ListItemButton';
 import { NAV } from './config-layout';
 import Logo from '../../components/logo';
 import navConfig from './config-navigation';
-import { account } from '../../_mock/account';
+import { account } from '../../../_mock/account';
 import { usePathname } from '../../routes/hooks';
 import Scrollbar from '../../components/scrollbar';
 import { RouterLink } from '../../routes/components';
-import { useResponsive } from '../../hooks/use-responsive';
+import { useResponsive } from '../../../hooks/use-responsive';
 
 // ----------------------------------------------------------------------
 

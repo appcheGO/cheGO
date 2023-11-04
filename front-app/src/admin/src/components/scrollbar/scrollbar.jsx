@@ -7,6 +7,7 @@ import { StyledScrollbar, StyledRootScrollbar } from './styles';
 
 // ----------------------------------------------------------------------
 
+// eslint-disable-next-line react/display-name, react-refresh/only-export-components
 const Scrollbar = forwardRef(({ children, sx, ...other }, ref) => {
   const userAgent = typeof navigator === 'undefined' ? 'SSR' : navigator.userAgent;
 
@@ -41,4 +42,5 @@ Scrollbar.propTypes = {
   sx: PropTypes.object,
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export default memo(Scrollbar);

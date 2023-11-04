@@ -16,6 +16,7 @@ import LanguagePopover from "./common/language-popover";
 import { useResponsive } from "../../../hooks/use-responsive";
 import NotificationsPopover from "./common/notifications-popover";
 
+
 // ----------------------------------------------------------------------
 
 export default function Header({ onOpenNav }) {
@@ -44,32 +45,35 @@ export default function Header({ onOpenNav }) {
   );
 
   return (
-    <AppBar
-      sx={{
-        boxShadow: "none",
-        height: HEADER.H_MOBILE,
-        zIndex: theme.zIndex.appBar + 1,
-        ...bgBlur({
-          color: theme.palette.background.default,
-        }),
-        transition: theme.transitions.create(["height"], {
-          duration: theme.transitions.duration.shorter,
-        }),
-        ...(lgUp && {
-          width: `calc(100% - ${NAV.WIDTH + 1}px)`,
-          height: HEADER.H_DESKTOP,
-        }),
-      }}
-    >
-      <Toolbar
+    <>
+
+      <AppBar
         sx={{
-          height: 1,
-          px: { lg: 5 },
+          boxShadow: "none",
+          height: HEADER.H_MOBILE,
+          zIndex: theme.zIndex.appBar + 1,
+          ...bgBlur({
+            color: theme.palette.background.default,
+          }),
+          transition: theme.transitions.create(["height"], {
+            duration: theme.transitions.duration.shorter,
+          }),
+          ...(lgUp && {
+            width: `calc(100% - ${NAV.WIDTH + 1}px)`,
+            height: HEADER.H_DESKTOP,
+          }),
         }}
       >
-        {renderContent}
-      </Toolbar>
-    </AppBar>
+        <Toolbar
+          sx={{
+            height: 1,
+            px: { lg: 5 },
+          }}
+        >
+          {renderContent}
+        </Toolbar>
+      </AppBar>
+    </>
   );
 }
 
