@@ -22,7 +22,7 @@ export function CarrinhoProvider({ children }) {
       if (!orderNumber) {
         orderNumber = generateUniqueOrderNumber();
       }
-
+      const userId = data.telefone;
       const DadosPessoais = {
         nome: data.nome,
         telefone: data.telefone,
@@ -38,7 +38,7 @@ export function CarrinhoProvider({ children }) {
       };
 
       if (userId) {
-        const orderPath = `Usuarios/${data.telefone}/Pedidos/${orderNumber}`;
+        const orderPath = `Usuarios/${userId}/Pedidos/${orderNumber}`;
         const orderDocRef = doc(db, orderPath);
         await setDoc(orderDocRef, {
           DadosPessoais,
@@ -47,7 +47,7 @@ export function CarrinhoProvider({ children }) {
         });
         console.log("Pedido foi enviado para o usuário");
       } else {
-        const generalOrderPath = `Usuarios/${data.telefone}/Pedidos/${orderNumber}`;
+        const generalOrderPath = `Usuarios/${userId}/Pedidos/${orderNumber}`;
         const generalOrderDocRef = doc(db, generalOrderPath);
         await setDoc(generalOrderDocRef, {
           DadosPessoais,
@@ -60,6 +60,7 @@ export function CarrinhoProvider({ children }) {
 
       setTempProducts([]);
       console.log("Pedido enviado com sucesso.");
+      return userId;
     } catch (error) {
       console.error("Erro ao enviar o pedido: ", error);
     }

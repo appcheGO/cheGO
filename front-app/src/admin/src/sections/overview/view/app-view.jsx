@@ -1,5 +1,10 @@
 import { useEffect, useState } from "react";
-import { getFirestore, collection, getDocs, query } from "firebase/firestore";
+import {
+  getFirestore,
+  collection,
+  query,
+  onSnapshot,
+} from "firebase/firestore";
 import { initializeApp } from "firebase/app";
 import { Container, Box, Typography, Button } from "@mui/material";
 import Header from "../../../layouts/dashboard/header";
@@ -16,15 +21,14 @@ export default function AppView() {
   };
 
   const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
 
-  const [setUserOrders] = useState([]);
   const [pedidoRecebido, setPedidoRecebido] = useState(null);
   const [pedidoEmPreparo, setPedidoEmPreparo] = useState(null);
   const [pedidoFinalizado, setPedidoFinalizado] = useState(null);
-
-  const [lastOrder, setLastOrder] = useState(null);
   const [pedidoRecebidoValido, setPedidoRecebidoValido] = useState(false);
   const [enderecoVisivel, setEnderecoVisivel] = useState(false);
+
   const [enderecoPedidoRecebido, setEnderecoPedidoRecebido] = useState({
     rua: "",
     bairro: "",
@@ -35,52 +39,48 @@ export default function AppView() {
     estado: "",
   });
 
+  
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const users = ["85 9 82168756", "99 9 99999999", "85 9 82168755"];
   useEffect(() => {
-    const db = getFirestore(app);
-    const userId = "85 9 82168756";
-
-    async function fetchUserOrders() {
+    const unsubscribeCallbacks = users.map((userId) => {
       const ordersQuery = query(collection(db, "Usuarios", userId, "Pedidos"));
-      const ordersSnapshot = await getDocs(ordersQuery);
 
-      const userOrders = [];
+      const unsubscribe = onSnapshot(ordersQuery, (snapshot) => {
+        let lastProcessedOrderId = null;
 
-      ordersSnapshot.forEach((orderDoc) => {
-        const orderData = orderDoc.data();
-        const orderNumber = orderDoc.id;
+        snapshot.forEach((doc) => {
+          const orderData = doc.data();
+          const orderNumber = doc.id;
 
-        userOrders.push({
-          numeroPedido: orderNumber,
-          ...orderData,
+          if (
+            lastProcessedOrderId === null ||
+            orderNumber > lastProcessedOrderId
+          ) {
+            setPedidoRecebido({
+              numeroPedido: orderNumber,
+              ...orderData,
+            });
+            setPedidoRecebidoValido(true);
+
+            const endereco = orderData.DadosPessoais.endereco;
+            setEnderecoPedidoRecebido(endereco);
+
+            lastProcessedOrderId = orderNumber;
+          }
         });
       });
 
-      setUserOrders(userOrders);
-
-      if (userOrders.length > 0) {
-        const lastUserOrder = userOrders[userOrders.length - 1];
-        if (lastUserOrder !== lastOrder) {
-          setLastOrder(lastUserOrder);
-
-          if (!pedidoEmPreparo && !pedidoFinalizado) {
-            setPedidoRecebido(lastUserOrder);
-            setPedidoRecebidoValido(true);
-          }
-
-          const endereco = lastUserOrder.DadosPessoais.endereco;
-          setEnderecoPedidoRecebido(endereco);
-        }
-      }
-    }
-
-    const intervalId = setInterval(() => {
-      fetchUserOrders();
-    }, 20000000);
+      return unsubscribe;
+    });
 
     return () => {
-      clearInterval(intervalId);
+      unsubscribeCallbacks.forEach((unsubscribe) => {
+        unsubscribe();
+      });
     };
-  }, [app, lastOrder, pedidoEmPreparo, pedidoFinalizado]);
+  }, [app, db, users]);
 
   const prepararPedido = () => {
     if (pedidoRecebidoValido && pedidoRecebido) {
@@ -188,59 +188,66 @@ export default function AppView() {
             maxHeight: "30rem",
           }}
         >
-          <Typography variant="h6">Pedido Recebido:</Typography>
-          <Box>
-            {pedidoRecebidoValido && (
-              <Box sx={{ display: "flex", flexDirection: "column" }}>
-                <Typography>
-                  <b>Nome :</b> {pedidoRecebido.DadosPessoais.nome}
-                  <br />
-                  <b>Telefone :</b> {pedidoRecebido.DadosPessoais.telefone}
-                </Typography>
-              </Box>
-            )}
-            {pedidoRecebidoValido && (
-              <Typography>
-                <b>Pedido :</b> {pedidoRecebido.numeroPedido}
-              </Typography>
-            )}
-            {pedidoRecebidoValido && (
-              <Button
-                sx={{ backgroundColor: "green", color: "white" }}
-                onClick={toggleEnderecoVisivel}
-              >
-                {enderecoVisivel ? "Esconder Endereço" : "Mostrar Endereço"}
-              </Button>
-            )}
-            {enderecoVisivel && pedidoRecebidoValido && (
-              <Typography>
-                <b>Endereço :</b>
-                <br />
-                Rua: {enderecoPedidoRecebido.rua}
-                <br />
-                Bairro: {enderecoPedidoRecebido.bairro}
-                <br />
-                Casa/Apto: {enderecoPedidoRecebido.casaApto}
-                <br />
-                CEP: {enderecoPedidoRecebido.cep}
-                <br />
-                Cidade: {enderecoPedidoRecebido.cidade}
-                <br />
-                Complemento: {enderecoPedidoRecebido.complemento}
-                <br />
-                Estado: {enderecoPedidoRecebido.estado}
-              </Typography>
-            )}
+          <Typography variant="h6">Pedidos Recebidos:</Typography>
 
-            {pedidoRecebidoValido && (
-              <Button
-                sx={{ backgroundColor: "green", color: "white" }}
-                onClick={prepararPedido}
-              >
-                Preparar Pedido
-              </Button>
-            )}
-          </Box>
+          {users.map((userId) => (
+            <Box key={userId} sx={{ margin: "1rem 0" }}>
+              <Typography>Usuário: {userId}</Typography>
+              <Box sx={{ border: "1px solid #333" }}>
+                {pedidoRecebidoValido && (
+                  <Box sx={{ display: "flex", flexDirection: "column" }}>
+                    <Typography>
+                      <b>Nome :</b> {pedidoRecebido.DadosPessoais.nome}
+                      <br />
+                      <b>Telefone :</b>
+                      {pedidoRecebido.DadosPessoais.telefone}
+                    </Typography>
+                  </Box>
+                )}
+                {pedidoRecebidoValido && (
+                  <Typography>
+                    <b>Pedido :</b> {pedidoRecebido.numeroPedido}
+                  </Typography>
+                )}
+                {pedidoRecebidoValido && (
+                  <Button
+                    sx={{ backgroundColor: "green", color: "white" }}
+                    onClick={toggleEnderecoVisivel}
+                  >
+                    {enderecoVisivel ? "Esconder Endereço" : "Mostrar Endereço"}
+                  </Button>
+                )}
+                {enderecoVisivel && pedidoRecebidoValido && (
+                  <Typography>
+                    <b>Endereço :</b>
+                    <br />
+                    Rua: {enderecoPedidoRecebido.rua}
+                    <br />
+                    Bairro: {enderecoPedidoRecebido.bairro}
+                    <br />
+                    Casa/Apto: {enderecoPedidoRecebido.casaApto}
+                    <br />
+                    CEP: {enderecoPedidoRecebido.cep}
+                    <br />
+                    Cidade: {enderecoPedidoRecebido.cidade}
+                    <br />
+                    Complemento: {enderecoPedidoRecebido.complemento}
+                    <br />
+                    Estado: {enderecoPedidoRecebido.estado}
+                  </Typography>
+                )}
+
+                {pedidoRecebidoValido && (
+                  <Button
+                    sx={{ backgroundColor: "green", color: "white" }}
+                    onClick={prepararPedido}
+                  >
+                    Preparar Pedido
+                  </Button>
+                )}
+              </Box>
+            </Box>
+          ))}
         </Box>
 
         <Box
