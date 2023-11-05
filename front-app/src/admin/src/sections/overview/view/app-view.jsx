@@ -3,7 +3,6 @@ import { getFirestore, collection, getDocs, query } from "firebase/firestore";
 import { initializeApp } from "firebase/app";
 import { Container, Box, Typography, Button } from "@mui/material";
 import Header from "../../../layouts/dashboard/header";
-import Nav from "../../../layouts/dashboard/nav"
 
 export default function AppView() {
   const firebaseConfig = {
@@ -18,9 +17,24 @@ export default function AppView() {
 
   const app = initializeApp(firebaseConfig);
 
-  const [userOrders, setUserOrders] = useState([]);
+  const [setUserOrders] = useState([]);
+  const [pedidoRecebido, setPedidoRecebido] = useState(null);
+  const [pedidoEmPreparo, setPedidoEmPreparo] = useState(null);
+  const [pedidoFinalizado, setPedidoFinalizado] = useState(null);
 
   const [lastOrder, setLastOrder] = useState(null);
+  const [pedidoRecebidoValido, setPedidoRecebidoValido] = useState(false);
+  const [enderecoVisivel, setEnderecoVisivel] = useState(false);
+  const [enderecoPedidoRecebido, setEnderecoPedidoRecebido] = useState({
+    rua: "",
+    bairro: "",
+    casaApto: "",
+    cep: "",
+    cidade: "",
+    complemento: "",
+    estado: "",
+  });
+
   useEffect(() => {
     const db = getFirestore(app);
     const userId = "85 9 82168756";
@@ -42,106 +56,304 @@ export default function AppView() {
       });
 
       setUserOrders(userOrders);
+
       if (userOrders.length > 0) {
         const lastUserOrder = userOrders[userOrders.length - 1];
         if (lastUserOrder !== lastOrder) {
           setLastOrder(lastUserOrder);
+
+          if (!pedidoEmPreparo && !pedidoFinalizado) {
+            setPedidoRecebido(lastUserOrder);
+            setPedidoRecebidoValido(true);
+          }
+
+          const endereco = lastUserOrder.DadosPessoais.endereco;
+          setEnderecoPedidoRecebido(endereco);
         }
       }
     }
 
     const intervalId = setInterval(() => {
       fetchUserOrders();
-    }, 2000);
+    }, 20000000);
 
     return () => {
       clearInterval(intervalId);
     };
-  }, [app, lastOrder]);
+  }, [app, lastOrder, pedidoEmPreparo, pedidoFinalizado]);
+
+  const prepararPedido = () => {
+    if (pedidoRecebidoValido && pedidoRecebido) {
+      setPedidoEmPreparo(pedidoRecebido);
+      setPedidoRecebido(null);
+      setPedidoRecebidoValido(false);
+    }
+  };
+
+  const pedidoPronto = () => {
+    if (pedidoEmPreparo) {
+      setPedidoFinalizado(pedidoEmPreparo);
+      setPedidoEmPreparo(null);
+    }
+  };
+
+  const toggleEnderecoVisivel = () => {
+    setEnderecoVisivel(!enderecoVisivel);
+  };
 
   return (
-    <Container>
+    <Container
+      sx={{
+        height: "100dvh",
+        width: "100dvw",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: "5rem",
+        position: "absolute",
+        overflow: "auto",
+      }}
+    >
       <Header />
-      
       <Box
         sx={{
           display: "flex",
           flexDirection: "row",
-          height: "auto",
-          width: "75vw",
+          alignItems: "center",
+          justifyContent: "space-evenly",
+          flexWrap: "wrap",
+          height: "10rem",
+          position: "relative",
+          top: "8rem",
+          gap: "1rem",
         }}
       >
-        <Box sx={{ backgroundColor: "#f46c26" }}>
+        <Box
+          className="box-shadow"
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-evenly",
+            alignItems: "center",
+            height: "100%",
+            backgroundColor: "lightblue",
+            padding: ".8rem",
+            border: "1px  solid",
+            minWidth: "20rem",
+          }}
+        >
+          <Typography variant="h6">Quantidade de pedidos hoje:</Typography>
+          <Typography variant="h3">10</Typography>
+        </Box>
+        <Box
+          className="box-shadow"
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-evenly",
+            alignItems: "center",
+            height: "100%",
+            backgroundColor: "red",
+            padding: "1rem",
+            border: "1px solid",
+            minWidth: "20rem",
+          }}
+        >
+          <Typography variant="h6">Pedidos cancelados hoje:</Typography>
+          <Typography variant="h3">0</Typography>
+        </Box>
+        <Box
+          className="box-shadow"
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-evenly",
+            alignItems: "center",
+            height: "100%",
+            backgroundColor: "green",
+            padding: "1rem",
+            border: "1px solid",
+            minWidth: "20rem",
+          }}
+        >
+          <Typography variant="h6">Recebido hoje:</Typography>
+          <Typography variant="h3">R$ 349,00</Typography>
+        </Box>
+
+        <Box
+          className="box-shadow"
+          sx={{
+            backgroundColor: "#f46c26",
+            width: "20rem",
+            maxHeight: "30rem",
+          }}
+        >
           <Typography variant="h6">Pedido Recebido:</Typography>
-          <Box sx={{ border: "1px red solid" }}>
-            {userOrders.length > 0 && (
+          <Box>
+            {pedidoRecebidoValido && (
               <Box sx={{ display: "flex", flexDirection: "column" }}>
                 <Typography>
-                  <b>Nome :</b>
-                  {userOrders[userOrders.length - 1].DadosPessoais.nome}
+                  <b>Nome :</b> {pedidoRecebido.DadosPessoais.nome}
                   <br />
-                  <b>Telefone :</b>
-                  {userOrders[userOrders.length - 1].DadosPessoais.telefone}
+                  <b>Telefone :</b> {pedidoRecebido.DadosPessoais.telefone}
                 </Typography>
               </Box>
             )}
-            {userOrders.length > 0 && (
+            {pedidoRecebidoValido && (
               <Typography>
-                <b>Pedido :</b> {userOrders[userOrders.length - 1].numeroPedido}
+                <b>Pedido :</b> {pedidoRecebido.numeroPedido}
               </Typography>
             )}
-            <Button
-              onClick={() => {
-                const phoneNumber =
-                  userOrders[userOrders.length - 1].DadosPessoais.telefone;
-                const message = "Pedido em Preparo";
+            {pedidoRecebidoValido && (
+              <Button
+                sx={{ backgroundColor: "green", color: "white" }}
+                onClick={toggleEnderecoVisivel}
+              >
+                {enderecoVisivel ? "Esconder Endereço" : "Mostrar Endereço"}
+              </Button>
+            )}
+            {enderecoVisivel && pedidoRecebidoValido && (
+              <Typography>
+                <b>Endereço :</b>
+                <br />
+                Rua: {enderecoPedidoRecebido.rua}
+                <br />
+                Bairro: {enderecoPedidoRecebido.bairro}
+                <br />
+                Casa/Apto: {enderecoPedidoRecebido.casaApto}
+                <br />
+                CEP: {enderecoPedidoRecebido.cep}
+                <br />
+                Cidade: {enderecoPedidoRecebido.cidade}
+                <br />
+                Complemento: {enderecoPedidoRecebido.complemento}
+                <br />
+                Estado: {enderecoPedidoRecebido.estado}
+              </Typography>
+            )}
 
-                const countryCode = "55";
-
-                const formattedPhoneNumber = phoneNumber.replace(/\D/g, "");
-
-                const whatsappLink = `https://wa.me/${countryCode}${formattedPhoneNumber}?text=${encodeURIComponent(
-                  message
-                )}`;
-
-                window.open(whatsappLink, "_blank");
-              }}
-            >
-              Preparar Pedido
-            </Button>
+            {pedidoRecebidoValido && (
+              <Button
+                sx={{ backgroundColor: "green", color: "white" }}
+                onClick={prepararPedido}
+              >
+                Preparar Pedido
+              </Button>
+            )}
           </Box>
         </Box>
 
         <Box
+          className="box-shadow"
           sx={{
-            display: "flex",
-            flexDirection: "column",
             backgroundColor: "#7ac142",
-            height: "auto",
+            width: "20rem",
+            maxHeight: "30rem",
           }}
         >
           <Typography variant="h6">Pedido em Preparo:</Typography>
+          {pedidoEmPreparo && (
+            <Box sx={{ border: "1px green solid" }}>
+              <Box sx={{ display: "flex", flexDirection: "column" }}>
+                <Typography>
+                  <b>Nome :</b> {pedidoEmPreparo.DadosPessoais.nome}
+                  <br />
+                  <b>Telefone :</b> {pedidoEmPreparo.DadosPessoais.telefone}
+                </Typography>
+                {pedidoEmPreparo && (
+                  <Button
+                    sx={{ backgroundColor: "green", color: "white" }}
+                    onClick={toggleEnderecoVisivel}
+                  >
+                    {enderecoVisivel ? "Esconder Endereço" : "Mostrar Endereço"}
+                  </Button>
+                )}
+                {enderecoVisivel && pedidoEmPreparo && (
+                  <Typography>
+                    <b>Endereço :</b>
+                    <br />
+                    Rua: {enderecoPedidoRecebido.rua}
+                    <br />
+                    Bairro: {enderecoPedidoRecebido.bairro}
+                    <br />
+                    Casa/Apto: {enderecoPedidoRecebido.casaApto}
+                    <br />
+                    CEP: {enderecoPedidoRecebido.cep}
+                    <br />
+                    Cidade: {enderecoPedidoRecebido.cidade}
+                    <br />
+                    Complemento: {enderecoPedidoRecebido.complemento}
+                    <br />
+                    Estado: {enderecoPedidoRecebido.estado}
+                  </Typography>
+                )}
+                <Typography>
+                  <b>Pedido :</b> {pedidoEmPreparo.numeroPedido}
+                </Typography>
+              </Box>
+              <Button
+                sx={{ backgroundColor: "green", color: "white" }}
+                onClick={pedidoPronto}
+              >
+                Pedido Pronto
+              </Button>
+            </Box>
+          )}
         </Box>
 
         <Box
+          className="box-shadow"
           sx={{
-            display: "flex",
-            flexDirection: "column",
-            backgroundColor: "#1976d2",
-            height: "auto",
+            backgroundColor: "lightblue",
+            width: "20rem",
+            maxHeight: "30rem",
           }}
         >
           <Typography variant="h6">Pedido Finalizado:</Typography>
-        </Box>
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            backgroundColor: "#ffcb00",
-            height: "auto",
-          }}
-        >
-          <Typography variant="h6">Pedido Saiu para entrega:</Typography>
+          {pedidoFinalizado && (
+            <Box sx={{ border: "1px blue solid" }}>
+              <Box sx={{ display: "flex", flexDirection: "column" }}>
+                <Typography>
+                  <b>Nome :</b> {pedidoFinalizado.DadosPessoais.nome}
+                  <br />
+                  <b>Telefone :</b> {pedidoFinalizado.DadosPessoais.telefone}
+                </Typography>
+                {pedidoFinalizado && (
+                  <Button
+                    sx={{ backgroundColor: "green", color: "white" }}
+                    onClick={toggleEnderecoVisivel}
+                  >
+                    {enderecoVisivel ? "Esconder Endereço" : "Mostrar Endereço"}
+                  </Button>
+                )}
+                {enderecoVisivel && pedidoFinalizado && (
+                  <Typography>
+                    <b>Endereço :</b>
+                    <br />
+                    Rua: {enderecoPedidoRecebido.rua}
+                    <br />
+                    Bairro: {enderecoPedidoRecebido.bairro}
+                    <br />
+                    Casa/Apto: {enderecoPedidoRecebido.casaApto}
+                    <br />
+                    CEP: {enderecoPedidoRecebido.cep}
+                    <br />
+                    Cidade: {enderecoPedidoRecebido.cidade}
+                    <br />
+                    Complemento: {enderecoPedidoRecebido.complemento}
+                    <br />
+                    Estado: {enderecoPedidoRecebido.estado}
+                  </Typography>
+                )}
+                <Typography>
+                  <b>Pedido :</b> {pedidoFinalizado.numeroPedido}
+                </Typography>
+              </Box>
+              <Button sx={{ backgroundColor: "blue", color: "white" }}>
+                Esperar Entregador
+              </Button>
+            </Box>
+          )}
         </Box>
       </Box>
     </Container>

@@ -12,9 +12,9 @@ import Searchbar from "./common/searchbar";
 import { NAV, HEADER } from "./config-layout";
 import Iconify from "../../components/iconify";
 import AccountPopover from "./common/account-popover";
-import LanguagePopover from "./common/language-popover";
+
 import { useResponsive } from "../../../hooks/use-responsive";
-import NotificationsPopover from "./common/notifications-popover";
+
 
 
 // ----------------------------------------------------------------------
@@ -27,7 +27,7 @@ export default function Header({ onOpenNav }) {
   const renderContent = (
     <>
       {!lgUp && (
-        <IconButton onClick={onOpenNav} sx={{ mr: 1 }}>
+        <IconButton onClick={onOpenNav} sx={{ mr: 1 }} >
           <Iconify icon="eva:menu-2-fill" />
         </IconButton>
       )}
@@ -36,9 +36,8 @@ export default function Header({ onOpenNav }) {
 
       <Box sx={{ flexGrow: 1 }} />
 
-      <Stack direction="row" alignItems="center" spacing={1}>
-        <LanguagePopover />
-        <NotificationsPopover />
+      <Stack direction="row" alignItems="center" spacing={1} >
+    
         <AccountPopover />
       </Stack>
     </>
