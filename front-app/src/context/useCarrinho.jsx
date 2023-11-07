@@ -22,7 +22,6 @@ export function CarrinhoProvider({ children }) {
       if (!orderNumber) {
         orderNumber = generateUniqueOrderNumber();
       }
-     
       const DadosPessoais = {
         nome: data.nome,
         telefone: data.telefone,
@@ -45,7 +44,6 @@ export function CarrinhoProvider({ children }) {
           itens: tempProducts,
           dataPedido: new Date(),
         });
-        console.log("Pedido foi enviado para o usuário");
       } else {
         const generalOrderPath = `Tests/TELEFONE/PEDIDOS/${orderNumber}`;
         const generalOrderDocRef = doc(db, generalOrderPath);
@@ -54,13 +52,11 @@ export function CarrinhoProvider({ children }) {
           itens: tempProducts,
           dataPedido: new Date(),
         });
-
-        console.log("Pedido foi enviado para a coleção geral");
       }
 
       setTempProducts([]);
-      console.log("Pedido enviado com sucesso.");
       return userId;
+
     } catch (error) {
       console.error("Erro ao enviar o pedido: ", error);
     }

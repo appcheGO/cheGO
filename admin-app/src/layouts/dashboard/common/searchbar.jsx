@@ -25,7 +25,6 @@ const StyledSearchbar = styled('div')(({ theme }) => ({
   zIndex: 99,
   width: '100%',
   display: 'flex',
-
   position: 'absolute',
   alignItems: 'center',
   height: HEADER_MOBILE,
