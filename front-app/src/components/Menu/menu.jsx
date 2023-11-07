@@ -75,7 +75,7 @@ export default function Menu() {
 
   const [firebaseData, setFirebaseData] = useState({});
   useEffect(() => {
-    fetch(`https://chego-delivery-app-default-rtdb.firebaseio.com/.json`)
+    fetch(`https://testeapp-666bc-default-rtdb.firebaseio.com/.json`)
       .then((response) => response.json())
       .then((data) => {
         setFirebaseData(data);
