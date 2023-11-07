@@ -10,8 +10,9 @@ import Order from "./pages/Order.jsx";
 import OrdersWithoutRegistration from "./pages/OrdersWithoutRegistration.jsx";
 import LoginPage from "../src/admin/src/pages/login.jsx";
 import AppPage from "./admin/src/pages/app.jsx";
+// Importe a tela de dashboard
 
-const router = createBrowserRouter([
+const routes = [
   {
     path: "/",
     element: <App />,
@@ -32,26 +33,27 @@ const router = createBrowserRouter([
         path: "/pedidosemcadastro",
         element: <OrdersWithoutRegistration />,
       },
+    ],
+  },
+  {
+    path: "/admin",
+    element: <Outlet />,
+    children: [
       {
-        path: "/admin",
-        element: <Outlet />,
-        children: [
-          {
-            path: "login",
-            element: <LoginPage />,
-          },
-          {
-            path: "dashboard",
-            element: <AppPage />,
-          },
-        ],
+        path: "login",
+        element: <LoginPage />,
+      },
+      {
+        path: "dashboard",
+        element: <AppPage />, 
       },
     ],
   },
-]);
+];
+
+const router = createBrowserRouter(routes);
 
 ReactDOM.createRoot(document.getElementById("root")).render(
-
   <React.StrictMode>
     <RouterProvider router={router} />
   </React.StrictMode>
