@@ -1,18 +1,15 @@
 import { useState } from "react";
 
 import Box from "@mui/material/Box";
-import Link from "@mui/material/Link";
 import Card from "@mui/material/Card";
 import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
-import Divider from "@mui/material/Divider";
+
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import IconButton from "@mui/material/IconButton";
 import { alpha, useTheme } from "@mui/material/styles";
 import InputAdornment from "@mui/material/InputAdornment";
-
-import Logo from "../../components/logo";
 import { bgGradient } from "../../theme/css";
 import Iconify from "../../components/iconify";
 import { useRouter } from "../../routes/hooks";
@@ -22,13 +19,12 @@ import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 
 // ----------------------------------------------------------------------
 const firebaseConfig = {
-  apiKey: "AIzaSyAeEFkpZJQ_gw7GowD5SZlWl5XnJQLnXAQ",
-  authDomain: "chego-delivery-app.firebaseapp.com",
-  databaseURL: "https://chego-delivery-app-default-rtdb.firebaseio.com",
-  projectId: "chego-delivery-app",
-  storageBucket: "chego-delivery-app.appspot.com",
-  messagingSenderId: "471857496315",
-  appId: "1:471857496315:web:c1809f1b3659ad753d305e",
+  apiKey: "AIzaSyCtUEJucj4FgNrJgwLhcpzZ7OJVCqjM8ls",
+  authDomain: "testeapp-666bc.firebaseapp.com",
+  projectId: "testeapp-666bc",
+  storageBucket: "testeapp-666bc.appspot.com",
+  messagingSenderId: "273940847816",
+  appId: "1:273940847816:web:7d5c1f136cb8cac3c159fd",
 };
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -54,8 +50,13 @@ export default function LoginView() {
     <>
       <Stack spacing={3}>
         <TextField
+          sx={{
+            "& div:first-of-type": {
+              height: "auto !important",
+            },
+          }}
           name="email"
-          label="Email address"
+          label="Email "
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
@@ -83,24 +84,13 @@ export default function LoginView() {
         />
       </Stack>
 
-      <Stack
-        direction="row"
-        alignItems="center"
-        justifyContent="flex-end"
-        sx={{ my: 3 }}
-      >
-        <Link variant="subtitle2" underline="hover">
-          Esqueceu sua senha?
-        </Link>
-      </Stack>
-
       <Button
         fullWidth
         size="large"
         type="submit"
         variant="contained"
-        color="inherit"
         onClick={handleLogin}
+        sx={{ mt: 2 }}
       >
         Login
       </Button>
@@ -115,81 +105,27 @@ export default function LoginView() {
           imgUrl: "/assets/background/overlay_4.jpg",
         }),
         height: 1,
+        display: "flex",
+        justifyContent: "center",
       }}
     >
-      <Logo
-        sx={{
-          position: "fixed",
-          top: { xs: 16, md: 24 },
-          left: { xs: 16, md: 24 },
-        }}
-      />
-
-      <Stack alignItems="center" justifyContent="center" sx={{ height: 1 }}>
+      <Stack
+        alignItems="center"
+        justifyContent="center"
+        sx={{ height: 1, width: "90%" }}
+      >
         <Card
+          className="box-shadow"
           sx={{
             p: 5,
             width: 1,
             maxWidth: 420,
+            backgroundColor: "#fae9de",
           }}
         >
-          <Typography variant="h4" sx={{ textAlign: "center" }}>
-            Login Admin
+          <Typography variant="h4" sx={{ textAlign: "center", mb: 2 }}>
+            Login
           </Typography>
-
-          <Typography
-            variant="body2"
-            sx={{ mt: 2, mb: 5, textAlign: "center" }}
-          >
-            Ainda não possui uma conta?
-            <Link variant="subtitle2" sx={{ ml: 0.5 }}>
-              Crie aqui
-            </Link>
-          </Typography>
-
-          <Stack direction="row" spacing={2}>
-            <Button
-              fullWidth
-              size="large"
-              color="inherit"
-              variant="outlined"
-              sx={{
-                borderColor: alpha(theme.palette.grey[500], 0.16),
-              }}
-            >
-              <Iconify icon="eva:google-fill" color="#DF3E30" />
-            </Button>
-
-            <Button
-              fullWidth
-              size="large"
-              color="inherit"
-              variant="outlined"
-              sx={{
-                borderColor: alpha(theme.palette.grey[500], 0.16),
-              }}
-            >
-              <Iconify icon="eva:facebook-fill" color="#1877F2" />
-            </Button>
-
-            <Button
-              fullWidth
-              size="large"
-              color="inherit"
-              variant="outlined"
-              sx={{
-                borderColor: alpha(theme.palette.grey[500], 0.16),
-              }}
-            >
-              <Iconify icon="eva:twitter-fill" color="#1C9CEA" />
-            </Button>
-          </Stack>
-
-          <Divider sx={{ my: 3 }}>
-            <Typography variant="body2" sx={{ color: "text.secondary" }}>
-              OR
-            </Typography>
-          </Divider>
 
           {renderForm}
         </Card>

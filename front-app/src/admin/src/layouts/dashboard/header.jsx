@@ -22,7 +22,7 @@ import { useResponsive } from "../../../hooks/use-responsive";
 export default function Header({ onOpenNav }) {
   const theme = useTheme();
 
-  const lgUp = useResponsive("up", "lg");
+  const lgUp = useResponsive("up", "lg","xl");
 
   const renderContent = (
     <>
