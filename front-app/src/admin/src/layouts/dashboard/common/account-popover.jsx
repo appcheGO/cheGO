@@ -1,40 +1,39 @@
-import { useState } from 'react';
+import { useState } from "react";
+import { getAuth, signOut } from "firebase/auth";
 
-import Box from '@mui/material/Box';
-import Avatar from '@mui/material/Avatar';
-import Divider from '@mui/material/Divider';
-import Popover from '@mui/material/Popover';
-import { alpha } from '@mui/material/styles';
-import MenuItem from '@mui/material/MenuItem';
-import Typography from '@mui/material/Typography';
-import IconButton from '@mui/material/IconButton';
-
-import { account } from '../../../../_mock/account';
+import Box from "@mui/material/Box";
+import Avatar from "@mui/material/Avatar";
+import Divider from "@mui/material/Divider";
+import Popover from "@mui/material/Popover";
+import { alpha } from "@mui/material/styles";
+import MenuItem from "@mui/material/MenuItem";
+import Typography from "@mui/material/Typography";
+import IconButton from "@mui/material/IconButton";
+import { useNavigate } from "react-router-dom";
+import { account } from "../../../../_mock/account";
 
 // ----------------------------------------------------------------------
-
-const MENU_OPTIONS = [
-  {
-    label: 'Home',
-    icon: 'eva:home-fill',
-  },
-  {
-    label: 'Profile',
-    icon: 'eva:person-fill',
-  },
-  {
-    label: 'Settings',
-    icon: 'eva:settings-2-fill',
-  },
-];
 
 // ----------------------------------------------------------------------
 
 export default function AccountPopover() {
   const [open, setOpen] = useState(null);
+  const auth = getAuth(); // Obtenha a instância de autenticação
+  const Navigate = useNavigate(); // Obtenha o objeto de histórico de navegação
 
   const handleOpen = (event) => {
     setOpen(event.currentTarget);
+  };
+
+  const handleLogout = () => {
+    signOut(auth)
+      .then(() => {
+        console.log("Usuário deslogado com sucesso.");
+        Navigate("/admin/login"); 
+      })
+      .catch((error) => {
+        console.error("Erro ao deslogar o usuário:", error);
+      });
   };
 
   const handleClose = () => {
@@ -57,23 +56,20 @@ export default function AccountPopover() {
       >
         <Avatar
           src={account.photoURL}
-          alt={account.displayName}
           sx={{
             width: 36,
             height: 36,
             border: (theme) => `solid 2px ${theme.palette.background.default}`,
           }}
-        >
-          {account.displayName.charAt(0).toUpperCase()}
-        </Avatar>
+        ></Avatar>
       </IconButton>
 
       <Popover
         open={!!open}
         anchorEl={open}
         onClose={handleClose}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        transformOrigin={{ vertical: "top", horizontal: "right" }}
         PaperProps={{
           sx: {
             p: 0,
@@ -84,31 +80,22 @@ export default function AccountPopover() {
         }}
       >
         <Box sx={{ my: 1.5, px: 2 }}>
-          <Typography variant="subtitle2" noWrap>
-            {account.displayName}
-          </Typography>
-          <Typography variant="body2" sx={{ color: 'text.secondary' }} noWrap>
+          <Typography variant="body2" sx={{ color: "text.secondary" }} noWrap>
             {account.email}
           </Typography>
         </Box>
 
-        <Divider sx={{ borderStyle: 'dashed' }} />
+        <Divider sx={{ borderStyle: "dashed" }} />
 
-        {MENU_OPTIONS.map((option) => (
-          <MenuItem key={option.label} onClick={handleClose}>
-            {option.label}
-          </MenuItem>
-        ))}
-
-        <Divider sx={{ borderStyle: 'dashed', m: 0 }} />
+        <Divider sx={{ borderStyle: "dashed", m: 0 }} />
 
         <MenuItem
           disableRipple
           disableTouchRipple
-          onClick={handleClose}
-          sx={{ typography: 'body2', color: 'error.main', py: 1.5 }}
+          onClick={handleLogout}
+          sx={{ typography: "body2", color: "error.main", py: 1.5 }}
         >
-          Logout
+          Sair
         </MenuItem>
       </Popover>
     </>

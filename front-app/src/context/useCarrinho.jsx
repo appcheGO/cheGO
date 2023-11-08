@@ -37,7 +37,7 @@ export function CarrinhoProvider({ children }) {
       };
 
       if (userId) {
-        const orderPath = `Tests/TELEFONE/PEDIDOS/${orderNumber}`;
+        const orderPath = `PEDIDOS RECEBIDOS/TELEFONE/PEDIDOS/${orderNumber}`;
         const orderDocRef = doc(db, orderPath);
         await setDoc(orderDocRef, {
           DadosPessoais,
@@ -45,7 +45,7 @@ export function CarrinhoProvider({ children }) {
           dataPedido: new Date(),
         });
       } else {
-        const generalOrderPath = `Tests/TELEFONE/PEDIDOS/${orderNumber}`;
+        const generalOrderPath = `PEDIDOS RECEBIDOS/TELEFONE/PEDIDOS/${orderNumber}`;
         const generalOrderDocRef = doc(db, generalOrderPath);
         await setDoc(generalOrderDocRef, {
           DadosPessoais,
@@ -56,7 +56,6 @@ export function CarrinhoProvider({ children }) {
 
       setTempProducts([]);
       return userId;
-
     } catch (error) {
       console.error("Erro ao enviar o pedido: ", error);
     }
@@ -202,9 +201,26 @@ export function CarrinhoProvider({ children }) {
       }
 
       if (qtd > 0) {
-        const valorTotalItem =
-          (item.valor + valorAdicionais + item.valorSelecionado) * qtd;
-        subtotal += valorTotalItem;
+        if (item.valorOpcional !== undefined) {
+          // Adicione esta verificação para garantir que item.valorOpcional não seja nulo
+          const valorTotalItem =
+            (item.valor + valorAdicionais + item.valorOpcional) * qtd;
+          subtotal += valorTotalItem;
+          console.log(
+            "valores:",
+            valorTotalItem,
+            "valor do item:",
+            item.valor,
+            "valor do adicional:",
+            valorAdicionais,
+            "valor do opcional:",
+            item.valorOpcional
+          );
+        } else {
+          const valorTotalItem = (item.valor + valorAdicionais) * qtd;
+          subtotal += valorTotalItem; // Se item.valorOpcional for nulo, você pode adicionar um tratamento específico ou apenas ignorar este item.
+          console.log("Item com valor opcional nulo ignorado:", item);
+        }
       }
     });
 

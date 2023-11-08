@@ -12,7 +12,7 @@ import Image3 from "../../../public/hamburguer.png";
 import Image4 from "../../../public/comida-mexicana.png";
 import Image5 from "../../../public/refrigerantes.png";
 import SearchIcon from "@mui/icons-material/Search";
-import Data from "../../db/data.json";
+
 import * as Yup from "yup";
 import {
   Button,
@@ -69,9 +69,10 @@ export default function Menu() {
   const [isSegundoModalOpen, setIsSegundoModalOpen] = useState(false);
   const [observacao, setObservacao] = useState("");
   const [activeTab, setActiveTab] = useState("combos");
-  const [opicionais, setOpicionais] = useState([]);
+  const [opcionais, setOpcionais] = useState([]);
   const [adicional, setAdicional] = useState([]);
   const [refrigeranteError, setRefrigeranteError] = useState("");
+  const [bordaOptions, setBordaOptions] = useState([]);
 
   const [firebaseData, setFirebaseData] = useState({});
   useEffect(() => {
@@ -79,34 +80,39 @@ export default function Menu() {
       .then((response) => response.json())
       .then((data) => {
         setFirebaseData(data);
-        console.log(setFirebaseData(data));
         console.log("Dados do Firebase:", data);
 
-        const bordaOptions = data.opcionais[activeTab];
-
-        console.log("opcional", bordaOptions);
+        const bordaOptions = data.opcionais[activeTab] || [];
+        setBordaOptions(bordaOptions);
+        console.log("Opcionais do Firebase:", bordaOptions);
       })
       .catch((error) => {
         console.error("Erro ao buscar dados:", error);
       });
-  }, []);
+  }, [activeTab]);
 
-  const bordaOptions = Data.opcionais[activeTab];
   console.log("borda inferior, :", bordaOptions);
   console.log([activeTab]);
 
   useEffect(() => {
     let objGenerico = [];
-    Data.adicionais[activeTab].forEach((adicional) =>
-      objGenerico.push(adicional)
-    );
+    if (
+      firebaseData &&
+      firebaseData.adicionais &&
+      firebaseData.adicionais[activeTab]
+    ) {
+      firebaseData.adicionais[activeTab].forEach((adicional) =>
+        objGenerico.push(adicional)
+      );
+    }
 
     setAdicional(objGenerico);
     setItemToAdd(null);
     setrefrigeranteDoCombo("");
-    setOpicionais("");
+    setOpcionais("");
+
     setObservacao("");
-  }, [activeTab]);
+  }, [activeTab, firebaseData]);
 
   const modalCheckout = () => {
     const adicionais = adicional.filter((item) => item.qtde > 0);
@@ -115,31 +121,42 @@ export default function Menu() {
       total: item.valor * item.qtde,
     }));
 
+    // const valorOpcional = bordaOptions.map((item) => item.valorAdc);
+    const valorOpcional = parseFloat(opcionais.split("_")[1]);
+    console.log("valor do opcional" + typeof valorOpcional);
+
+    // const opcionalSelecionado = bordaOptions.map((item) => item.opcao);
+    const opcionalSelecionado = opcionais.split("_")[0];
+    console.log("Novo opcional", opcionalSelecionado);
+
     const valorTotalAdicionais =
       totais.length > 0
         ? totais
             .map((item) => item.total)
             .reduce((accumulator, currentValue) => accumulator + currentValue)
         : 0;
-    const valorTotalDoProduto = valorTotalAdicionais + itemToAdd.valor;
+    const valorTotalDoProduto =
+      valorTotalAdicionais + itemToAdd.valor + valorOpcional;
 
     const itemToAddWithQuantity = {
       ...itemToAdd,
       refrigeranteDoCombo,
       observacao,
-      opicionais,
-
+      opcionalSelecionado,
+      valorOpcional,
       adicionais: totais,
       valorTotalAdicionais,
       valorTotalDoProduto,
     };
+
+    console.log(itemToAddWithQuantity);
 
     const itemExistsInCart = cart.find((item) => {
       return (
         item.sabor === itemToAddWithQuantity.sabor &&
         item.refrigeranteDoCombo ===
           itemToAddWithQuantity.refrigeranteDoCombo &&
-        item.opicionais === itemToAddWithQuantity.opicionais &&
+        item.opcionais === itemToAddWithQuantity.opcionais &&
         JSON.stringify(item.adicionais) ===
           JSON.stringify(itemToAddWithQuantity.adicionais)
       );
@@ -184,7 +201,7 @@ export default function Menu() {
   const openConfirmationModal = (item) => {
     setItemToAdd(item);
     setrefrigeranteDoCombo("");
-    setOpicionais("");
+    setOpcionais("");
     setObservacao("");
 
     if (activeTab === "bebidas") {
@@ -193,8 +210,7 @@ export default function Menu() {
           ...item,
           refrigeranteDoCombo,
           observacao,
-          opicionais,
-
+          opcionais: 0,
           adicionais: [],
           valorTotalAdicionais: 0,
           valorTotalDoProduto: item.valor,
@@ -207,11 +223,11 @@ export default function Menu() {
           ...item,
           refrigeranteDoCombo,
           observacao,
-          opicionais,
-
+          opcionais,
           adicionais: [],
           valorTotalAdicionais: 0,
-          valorTotalDoProduto: item.valor,
+          valorTotalDoProduto:
+            item.valor + item.valorTotalAdicionais + item.valorOpcional,
         };
         addToCart(itemToAddWithQuantity);
       } else {
@@ -861,9 +877,9 @@ export default function Menu() {
             }}
             aria-label="borda"
             name="borda"
-            value={opicionais}
+            value={opcionais}
             onChange={(e) => {
-              setOpicionais(e.target.value);
+              setOpcionais(e.target.value);
               setRefrigeranteError("");
             }}
           >
@@ -879,7 +895,7 @@ export default function Menu() {
                 }}
               >
                 <FormControlLabel
-                  value={bordaOption.opcao}
+                  value={`${bordaOption.opcao}_${bordaOption.valorAdc}`}
                   control={<Radio />}
                   label={bordaOption.opcao}
                 />
@@ -952,7 +968,7 @@ export default function Menu() {
                 },
               }}
               onClick={() => {
-                if (!opicionais) {
+                if (!opcionais) {
                   setRefrigeranteError("Escolha um opcional");
                 } else {
                   modalCheckout();

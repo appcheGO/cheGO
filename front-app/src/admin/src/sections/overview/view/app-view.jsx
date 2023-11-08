@@ -59,7 +59,9 @@ export default function AppView() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
 
   const fetchPedidos = async () => {
-    const ordersQuery = query(collection(db, "Tests", "TELEFONE", "PEDIDOS"));
+    const ordersQuery = query(
+      collection(db, "PEDIDOS RECEBIDOS", "TELEFONE", "PEDIDOS")
+    );
 
     const unsubscribe = onSnapshot(ordersQuery, (snapshot) => {
       const pedidos = [];
@@ -112,7 +114,7 @@ export default function AppView() {
 
       const pedidoOriginalRef = doc(
         db,
-        "Tests",
+        "PEDIDOS RECEBIDOS",
         "TELEFONE",
         "PEDIDOS",
         pedidoFinalizado.numeroPedido
@@ -175,6 +177,7 @@ export default function AppView() {
           <Typography variant="h6">Quantidade de pedidos hoje:</Typography>
           <Typography variant="h3">10</Typography>
           <VisibilityIcon
+            titleAccess="Ver quantidades de pedidos de hoje"
             className="click"
             sx={{ pointerEvents: "pointer" }}
             onClick={() => setModalAberto(true)}
@@ -351,6 +354,7 @@ export default function AppView() {
           <Typography variant="h6">Pedidos cancelados hoje:</Typography>
           <Typography variant="h3">0</Typography>
           <VisibilityIcon
+            titleAccess="Ver quantidades de pedidos cancelados de hoje"
             sx={{ pointerEvents: "pointer" }}
             // onClick={() => setModalAberto(true)}
           />
@@ -373,6 +377,7 @@ export default function AppView() {
           <Typography variant="h6">Recebido hoje:</Typography>
           <Typography variant="h3">R$ 349,00</Typography>
           <VisibilityIcon
+            titleAccess="Ver valor recebido hoje"
             sx={{ pointerEvents: "pointer" }}
             // onClick={() => setModalAberto(true)}
           />
