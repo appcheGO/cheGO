@@ -7,6 +7,8 @@ import {
   addDoc,
   doc,
   deleteDoc,
+  getDocs,
+  where,
 } from "firebase/firestore";
 import { initializeApp } from "firebase/app";
 import {
@@ -18,6 +20,7 @@ import {
   DialogContent,
   DialogActions,
 } from "@mui/material";
+import { startOfDay, endOfDay } from "date-fns";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CancelIcon from "@mui/icons-material/Cancel";
@@ -34,12 +37,13 @@ export default function AppView() {
     messagingSenderId: "273940847816",
     appId: "1:273940847816:web:7d5c1f136cb8cac3c159fd",
   };
-
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
   const [modalAberto, setModalAberto] = useState(false);
-
+  const [quantidadeDePedidosEntregue, setQuantidadeDePedidosEntregue] =
+    useState([]);
+  const [valorRecebidoEntrega, setValorRecebidoEntrega] = useState([]);
   const [pedidoEntregue, setPedidoEntregue] = useState([]);
   const [pedidoEmPreparo, setPedidoEmPreparo] = useState([]);
   const [pedidoFinalizado, setPedidoFinalizado] = useState([]);
@@ -57,7 +61,47 @@ export default function AppView() {
   });
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
+  const buscarPedidosRecebidos = async () => {
+    try {
+      const pedidosRecebidosRef = collection(
+        db,
+        "PEDIDOS FINALIZADOS",
+        "TELEFONE",
+        "PEDIDOS"
+      );
+      const querySnapshot = await getDocs(
+        query(
+          pedidosRecebidosRef,
+          where("dataPedido", ">=", startOfDay(new Date())),
+          where("dataPedido", "<=", endOfDay(new Date()))
+        )
+      );
+      const pedidosRecebidos = [];
+      querySnapshot.forEach((doc) => {
+        const pedido = { id: doc.id, ...doc.data() };
+        pedidosRecebidos.push(pedido);
+      });
+      const valores = pedidosRecebidos.flatMap((item) =>
+        item.itens.map((item) => item.valorTotalDoProduto)
+      );
+      console.log(valores);
+      const somaDosValoresEntrega = valores
+        .reduce((accumulator, currentValue) => accumulator + currentValue, 0)
+        .toFixed(2);
+      console.log(somaDosValoresEntrega);
+      setValorRecebidoEntrega(somaDosValoresEntrega);
+      setQuantidadeDePedidosEntregue(pedidosRecebidos.length);
+      setPedidoEntregue(pedidosRecebidos);
+      return pedidosRecebidos;
+    } catch (error) {
+      console.error("Erro ao buscar os pedidos recebidos:", error);
+    }
+  };
 
+  const handleClick = () => {
+    setModalAberto(true);
+    buscarPedidosRecebidos();
+  };
   const fetchPedidos = async () => {
     const ordersQuery = query(
       collection(db, "PEDIDOS RECEBIDOS", "TELEFONE", "PEDIDOS")
@@ -80,10 +124,6 @@ export default function AppView() {
 
     return unsubscribe;
   };
-
-  useEffect(() => {
-    fetchPedidos();
-  }, []);
 
   const prepararPedido = (pedido) => {
     setPedidoEmPreparo([...pedidoEmPreparo, pedido]);
@@ -121,8 +161,6 @@ export default function AppView() {
       );
       await deleteDoc(pedidoOriginalRef);
 
-      setPedidoEntregue([...pedidoEntregue, pedidoFinalizado]);
-
       setPedidoFinalizado((pedidos) =>
         pedidos.filter((p) => p !== pedidoFinalizado)
       );
@@ -130,6 +168,10 @@ export default function AppView() {
       console.error("Erro ao mover o pedido finalizado:", error);
     }
   };
+  useEffect(() => {
+    fetchPedidos();
+    buscarPedidosRecebidos();
+  }, []);
 
   const toggleEnderecoVisivel = () => {
     setEnderecoVisivel(!enderecoVisivel);
@@ -175,12 +217,12 @@ export default function AppView() {
           }}
         >
           <Typography variant="h6">Quantidade de pedidos hoje:</Typography>
-          <Typography variant="h3">10</Typography>
+          <Typography variant="h3">{quantidadeDePedidosEntregue}</Typography>
           <VisibilityIcon
             titleAccess="Ver quantidades de pedidos de hoje"
             className="click"
             sx={{ pointerEvents: "pointer" }}
-            onClick={() => setModalAberto(true)}
+            onClick={handleClick}
           />
 
           <Dialog open={modalAberto} onClose={fecharModal}>
@@ -355,8 +397,7 @@ export default function AppView() {
           <Typography variant="h3">0</Typography>
           <VisibilityIcon
             titleAccess="Ver quantidades de pedidos cancelados de hoje"
-            sx={{ pointerEvents: "pointer" }}
-            // onClick={() => setModalAberto(true)}
+            sx={{ pointerEvents: "pointer", visibility: "hidden" }}
           />
         </Box>
 
@@ -375,11 +416,10 @@ export default function AppView() {
           }}
         >
           <Typography variant="h6">Recebido hoje:</Typography>
-          <Typography variant="h3">R$ 349,00</Typography>
+          <Typography variant="h3">R$ {valorRecebidoEntrega}</Typography>
           <VisibilityIcon
             titleAccess="Ver valor recebido hoje"
-            sx={{ pointerEvents: "pointer" }}
-            // onClick={() => setModalAberto(true)}
+            sx={{ pointerEvents: "pointer", visibility: "hidden" }}
           />
         </Box>
       </Box>
