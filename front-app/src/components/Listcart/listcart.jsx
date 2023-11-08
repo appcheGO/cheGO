@@ -26,7 +26,7 @@ export default function ListCart() {
       const novoValorTotalDoProduto =
         (primeiroItemNoCarrinho.valor +
           primeiroItemNoCarrinho.valorTotalAdicionais +
-          primeiroItemNoCarrinho.valorSelecionado) *
+          primeiroItemNoCarrinho.valorOpcional) *
         primeiroItemNoCarrinho.quantidade;
 
       const itemAtualizado = itensSelecionados.find(
@@ -51,33 +51,7 @@ export default function ListCart() {
   const handleIncrement = (item) => {
     const date = new Date();
     const newQuantidade = item.quantidade + 1;
-
-    const newValorTotalDoProduto =
-      (item.valor + item.valorTotalAdicionais) * newQuantidade;
-
-    const updatedItem = {
-      ...item,
-      key: date.getMilliseconds(),
-      quantidade: newQuantidade,
-      valorTotalDoProduto: newValorTotalDoProduto,
-    };
-
-    const updatedCart = cart.map((cartItem) => {
-      if (isSameCartItem(cartItem, updatedItem)) {
-        return updatedItem;
-      }
-      return cartItem;
-    });
-
-    setCart(updatedCart);
-    saveCartToSessionStorage(updatedCart);
-  };
-
-  const handleDecrement = (item) => {
-    if (item.quantidade > 1) {
-      const date = new Date();
-      const newQuantidade = item.quantidade - 1;
-
+    if (item.opcionais === 0) {
       const newValorTotalDoProduto =
         (item.valor + item.valorTotalAdicionais) * newQuantidade;
 
@@ -97,6 +71,76 @@ export default function ListCart() {
 
       setCart(updatedCart);
       saveCartToSessionStorage(updatedCart);
+    } else {
+      const newValorTotalDoProduto =
+        (item.valor + item.valorTotalAdicionais + item.valorOpcional) *
+        newQuantidade;
+
+      const updatedItem = {
+        ...item,
+        key: date.getMilliseconds(),
+        quantidade: newQuantidade,
+        valorTotalDoProduto: newValorTotalDoProduto,
+      };
+
+      const updatedCart = cart.map((cartItem) => {
+        if (isSameCartItem(cartItem, updatedItem)) {
+          return updatedItem;
+        }
+        return cartItem;
+      });
+
+      setCart(updatedCart);
+      saveCartToSessionStorage(updatedCart);
+    }
+  };
+
+  const handleDecrement = (item) => {
+    if (item.quantidade > 1) {
+      const date = new Date();
+      const newQuantidade = item.quantidade - 1;
+      if (item.opcionais === 0) {
+        const newValorTotalDoProduto =
+          (item.valor + item.valorTotalAdicionais) * newQuantidade;
+
+        const updatedItem = {
+          ...item,
+          key: date.getMilliseconds(),
+          quantidade: newQuantidade,
+          valorTotalDoProduto: newValorTotalDoProduto,
+        };
+
+        const updatedCart = cart.map((cartItem) => {
+          if (isSameCartItem(cartItem, updatedItem)) {
+            return updatedItem;
+          }
+          return cartItem;
+        });
+
+        setCart(updatedCart);
+        saveCartToSessionStorage(updatedCart);
+      } else {
+        const newValorTotalDoProduto =
+          (item.valor + item.valorTotalAdicionais + item.valorOpcional) *
+          newQuantidade;
+
+        const updatedItem = {
+          ...item,
+          key: date.getMilliseconds(),
+          quantidade: newQuantidade,
+          valorTotalDoProduto: newValorTotalDoProduto,
+        };
+
+        const updatedCart = cart.map((cartItem) => {
+          if (isSameCartItem(cartItem, updatedItem)) {
+            return updatedItem;
+          }
+          return cartItem;
+        });
+
+        setCart(updatedCart);
+        saveCartToSessionStorage(updatedCart);
+      }
     }
   };
 
@@ -217,26 +261,34 @@ export default function ListCart() {
                             </p>
                           </Typography>
                         )}
-                        {item.opicionais === "" || undefined ? (
+
+                        {item.opcionalSelecionado === "" || undefined ? (
                           <Box></Box>
                         ) : (
                           <>
-                            <Typography
-                              sx={{
-                                width: "100%",
-                                display: "flex",
-                                flexDirection: "row",
-                              }}
-                              variant="body2"
-                              gutterBottom
-                            >
-                              <em>
-                                <b>Opcional:</b>
-                              </em>
-                              <p style={{ paddingLeft: "5px" }}>
-                                {item.opicionais}
+                            {item.opcionais === 0 ? (
+                              <Box></Box>
+                            ) : (
+                              <p>
+                                <Typography
+                                  sx={{
+                                    width: "100%",
+                                    display: "flex",
+                                    flexDirection: "row",
+                                  }}
+                                  variant="body2"
+                                  gutterBottom
+                                >
+                                  <em>
+                                    <b>Opcional:</b>
+                                  </em>
+                                  <p style={{ paddingLeft: "5px" }}>
+                                    {item.opcionalSelecionado}
+                                  </p>
+                                </Typography>
                               </p>
-                            </Typography>
+                            )}
+
                             <Typography
                               sx={{
                                 width: "100%",
@@ -246,9 +298,56 @@ export default function ListCart() {
                               variant="body2"
                               gutterBottom
                             >
-                              <em>
-                                <b>Valor do opcional: </b>
-                              </em>
+                              {item.opcionais === 0 ? (
+                                <Box></Box>
+                              ) : (
+                                <Box>
+                                  {item.valorOpcional === 0 ||
+                                  null ||
+                                  undefined ||
+                                  "" ? (
+                                    <>
+                                      <Typography
+                                        sx={{
+                                          width: "100%",
+                                          display: "flex",
+                                          flexDirection: "row",
+                                        }}
+                                        variant="body2"
+                                        gutterBottom
+                                        key={item.id}
+                                      >
+                                        <em>
+                                          <b>Valor do opcional:</b>
+                                        </em>{" "}
+                                        <p style={{ paddingLeft: "0.6rem" }}>
+                                          Grátis
+                                        </p>
+                                      </Typography>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Typography
+                                        sx={{
+                                          width: "100%",
+                                          display: "flex",
+                                          flexDirection: "row",
+                                        }}
+                                        variant="body2"
+                                        gutterBottom
+                                        key={item.id}
+                                      >
+                                        <em>
+                                          <b>Valor do opcional:</b>
+                                        </em>{" "}
+                                        <p style={{ paddingLeft: "0.5rem" }}>
+                                          {useFormat(item.valorOpcional)}
+                                        </p>
+                                      </Typography>
+                                    </>
+                                  )}
+                                </Box>
+                              )}
                             </Typography>
                           </>
                         )}
@@ -336,17 +435,11 @@ export default function ListCart() {
                         justifyContent: "space-between",
                         alignItems: "center",
                         width: "100%",
-
                         borderTop: "2px dotted",
                       }}
                     >
                       <Typography variant="h6">
-                        {useFormat(
-                          (item.valor +
-                            item.valorTotalAdicionais +
-                            item.valorSelecionado) *
-                            item.quantidade
-                        )}
+                        {useFormat(item.valorTotalDoProduto)}
                       </Typography>
                       <Box
                         sx={{
