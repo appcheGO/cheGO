@@ -55,7 +55,7 @@ export function CarrinhoProvider({ children }) {
       }
 
       setTempProducts([]);
-      return userId;
+      return orderNumber;
     } catch (error) {
       console.error("Erro ao enviar o pedido: ", error);
     }

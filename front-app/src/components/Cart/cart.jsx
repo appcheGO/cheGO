@@ -122,34 +122,39 @@ export default function Cart() {
               continuar Comprando
             </Button>
           </Box>
-          {cart.length === 0 ? (
+        </Box>
+        {cart.length === 0 ? (
+          <Box></Box>
+        ) : (
+          <NavLink
+            to="/pedido"
+            style={{
+              display: "flex",
+              width: " 95%",
+              bottom: "8.5rem",
+              position: "absolute",
+              textDecoration: "none",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
             <Button
               className="btncheckout click"
-              variant="contained"
-              onClick={handleOpenModalCarrinho}
+              sx={{
+                bottom: "-4rem",
+                position: "absolute",
+                color: "#f7e9e1",
+                backgroundColor: "red",
+                borderRadius: "13px",
+                border: "1px solid #fae9de",
+                boxShadow:
+                  "5px 4px 5px 2px rgba(0, 0, 0, 0.2), 5px 4px 5px 2px rgba(0, 0, 0, 0.14), 5px 4px 5px 2px rgba(0, 0, 0, 0.12)",
+              }}
             >
-              Finalizar Pagamento
+              Ir para Pagamento
             </Button>
-          ) : (
-            <NavLink to="/pedido" style={{ textDecoration: "none" }}>
-              <Button
-                className="btncheckout click"
-                sx={{
-                  color: "#f7e9e1",
-                  backgroundColor: "red",
-                  borderRadius: "13px",
-                  border: "1px solid #fae9de",
-                  width: "100%",
-                  maxWidth: "375px",
-                  boxShadow:
-                    "5px 4px 5px 2px rgba(0, 0, 0, 0.2), 5px 4px 5px 2px rgba(0, 0, 0, 0.14), 5px 4px 5px 2px rgba(0, 0, 0, 0.12)",
-                }}
-              >
-                Ir para Pagamento
-              </Button>
-            </NavLink>
-          )}
-        </Box>
+          </NavLink>
+        )}
       </Box>
 
       <Box className="footer">
