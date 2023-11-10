@@ -65,7 +65,7 @@ export default function AppView() {
     try {
       const pedidosRecebidosRef = collection(
         db,
-        "PEDIDOS FINALIZADOS",
+        "PEDIDOS ENTREGUES",
         "TELEFONE",
         "PEDIDOS"
       );
@@ -125,52 +125,290 @@ export default function AppView() {
     return unsubscribe;
   };
 
-  const prepararPedido = (pedido) => {
-    setPedidoEmPreparo([...pedidoEmPreparo, pedido]);
+  // ...
 
-    setListaDePedidos((pedidos) => pedidos.filter((p) => p !== pedido));
-  };
-
-  const pedidoPronto = () => {
-    if (pedidoEmPreparo.length > 0) {
-      const pedidoFinal = pedidoEmPreparo[0];
-      setPedidoFinalizado([...pedidoFinalizado, pedidoFinal]);
-      setPedidoEmPreparo(pedidoEmPreparo.slice(1));
-    }
-  };
-  const moverParaPedidosFinalizados = async (pedidoFinalizado) => {
+  const moverParaPreparo = async (pedido) => {
     try {
-      const pedidosFinalizadosRef = collection(
+      // Referência para a coleção "PEDIDO EM PREPARO"
+      const pedidosEmPreparoRef = collection(
         db,
-        "PEDIDOS FINALIZADOS",
+        "PEDIDO EM PREPARO",
         "TELEFONE",
         "PEDIDOS"
       );
 
-      await addDoc(pedidosFinalizadosRef, {
-        ...pedidoFinalizado,
-        numeroPedido: pedidoFinalizado.numeroPedido,
+      // Adiciona o documento na nova coleção "PEDIDO EM PREPARO"
+      await addDoc(pedidosEmPreparoRef, {
+        ...pedido,
+        numeroPedido: pedido.numeroPedido, // ou qualquer outra informação necessária
       });
 
+      // Remove o documento da coleção original "PEDIDOS RECEBIDOS"
       const pedidoOriginalRef = doc(
         db,
         "PEDIDOS RECEBIDOS",
         "TELEFONE",
         "PEDIDOS",
-        pedidoFinalizado.numeroPedido
+        pedido.numeroPedido
       );
       await deleteDoc(pedidoOriginalRef);
 
-      setPedidoFinalizado((pedidos) =>
-        pedidos.filter((p) => p !== pedidoFinalizado)
+      // Atualiza o estado local (se necessário)
+      setListaDePedidos((pedidos) => pedidos.filter((p) => p !== pedido));
+    } catch (error) {
+      console.error("Erro ao mover o pedido para preparo:", error);
+    }
+  };
+
+  // ...
+
+  const prepararPedido = (pedido) => {
+    // Chama a função para mover o pedido para a coleção "PEDIDO EM PREPARO"
+    moverParaPreparo(pedido);
+    // Atualiza o estado local ou realiza outras ações necessárias
+    setPedidoEmPreparo([...pedidoEmPreparo, pedido]);
+  };
+
+  const moverParaPedidosEntregues = async (pedidoFinalizado) => {
+    try {
+      // Referência para a coleção "PEDIDOS ENTREGUES"
+      const pedidosEntreguesRef = collection(
+        db,
+        "PEDIDOS ENTREGUES",
+        "TELEFONE",
+        "PEDIDOS"
       );
+
+      // Adiciona o documento na nova coleção "PEDIDOS ENTREGUES"
+      const docRef = await addDoc(pedidosEntreguesRef, {
+        ...pedidoFinalizado,
+        numeroPedido: pedidoFinalizado.numeroPedido, // ou qualquer outra informação necessária
+      });
+
+      // Atualiza o estado local (se necessário)
+      setPedidoEntregue((pedidos) => [
+        ...pedidos,
+        { ...pedidoFinalizado, id: docRef.id },
+      ]);
+
+      // Agora, remova o documento da coleção "PEDIDO FINALIZADO"
+      const pedidoFinalizadoRef = doc(
+        db,
+        "PEDIDO FINALIZADO",
+        "TELEFONE",
+        "PEDIDOS",
+        pedidoFinalizado.id // Certifique-se de ajustar conforme sua estrutura de dados
+      );
+      await deleteDoc(pedidoFinalizadoRef);
+
+      // Atualiza o estado local dos pedidos finalizados após a remoção
+      buscarPedidosRecebidos();
+    } catch (error) {
+      console.error("Erro ao mover o pedido para entregues:", error);
+    }
+  };
+
+  const moverParaPedidosFinalizados = async (pedidoFinalizado) => {
+    try {
+      const pedidosFinalizadosRef = collection(
+        db,
+        "PEDIDO FINALIZADO",
+        "TELEFONE",
+        "PEDIDOS"
+      );
+
+      // Adiciona o documento na nova coleção "PEDIDO FINALIZADO"
+      const docRef = await addDoc(pedidosFinalizadosRef, {
+        ...pedidoFinalizado,
+        numeroPedido: pedidoFinalizado.numeroPedido,
+      });
+
+      // Atualiza o estado local (se necessário)
+      setPedidoFinalizado((pedidos) => [
+        ...pedidos,
+        { ...pedidoFinalizado, id: docRef.id },
+      ]);
+
+      // Agora, remova o documento da coleção "PEDIDO EM PREPARO"
+      const pedidoEmPreparoRef = doc(
+        db,
+        "PEDIDO EM PREPARO",
+        "TELEFONE",
+        "PEDIDOS",
+        pedidoFinalizado.numeroPedido // Ajuste conforme o campo correto para identificação
+      );
+      await deleteDoc(pedidoEmPreparoRef);
+
+      // Atualiza o estado local dos pedidos em preparo após a remoção
     } catch (error) {
       console.error("Erro ao mover o pedido finalizado:", error);
     }
   };
+
+  const buscarPedidosEmPreparo = async () => {
+    try {
+      // Busca os pedidos em preparo
+      const pedidosEmPreparoRef = collection(
+        db,
+        "PEDIDO EM PREPARO",
+        "TELEFONE",
+        "PEDIDOS"
+      );
+      const pedidosEmPreparoSnapshot = await getDocs(pedidosEmPreparoRef);
+      const pedidosEmPreparoData = pedidosEmPreparoSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      // Busca os pedidos finalizados
+      const pedidosFinalizadosRef = collection(
+        db,
+        "PEDIDO FINALIZADO",
+        "TELEFONE",
+        "PEDIDOS"
+      );
+      const pedidosFinalizadosSnapshot = await getDocs(pedidosFinalizadosRef);
+      const pedidosFinalizadosData = pedidosFinalizadosSnapshot.docs.map(
+        (doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })
+      );
+
+      // Identifica os IDs dos pedidos em preparo que também estão finalizados
+      const idsPedidosEmPreparoExcluir = pedidosEmPreparoData
+        .filter((pedidoEmPreparo) =>
+          pedidosFinalizadosData.some(
+            (pedidoFinalizado) =>
+              pedidoFinalizado.numeroPedido === pedidoEmPreparo.numeroPedido
+          )
+        )
+        .map((pedidoEmPreparo) => pedidoEmPreparo.id);
+
+      // Exclui os pedidos em preparo que também estão finalizados
+      await Promise.all(
+        idsPedidosEmPreparoExcluir.map(async (idPedidoEmPreparo) => {
+          const pedidoEmPreparoRef = doc(
+            db,
+            "PEDIDO EM PREPARO",
+            "TELEFONE",
+            "PEDIDOS",
+            idPedidoEmPreparo
+          );
+          await deleteDoc(pedidoEmPreparoRef);
+        })
+      );
+
+      // Filtra os pedidos em preparo para manter apenas aqueles que não existem em PEDIDO FINALIZADO
+      const pedidosEmPreparoFiltrados = pedidosEmPreparoData.filter(
+        (pedidoEmPreparo) =>
+          !pedidosFinalizadosData.some(
+            (pedidoFinalizado) =>
+              pedidoFinalizado.numeroPedido === pedidoEmPreparo.numeroPedido
+          )
+      );
+
+      console.log("numero do pedido", pedidosEmPreparoFiltrados);
+      setPedidoEmPreparo(pedidosEmPreparoFiltrados);
+    } catch (error) {
+      console.error("Erro ao buscar pedidos em preparo:", error);
+    }
+  };
+
+  const buscarPedidosFinalizado = async () => {
+    try {
+      const pedidosEmPreparoRef = collection(
+        db,
+        "PEDIDO FINALIZADO",
+        "TELEFONE",
+        "PEDIDOS"
+      );
+      const querySnapshot = await getDocs(pedidosEmPreparoRef);
+      const pedidosEmPreparoData = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setPedidoFinalizado(pedidosEmPreparoData);
+    } catch (error) {
+      console.error("Erro ao buscar pedidos em preparo:", error);
+    }
+  };
+
+  const pedidoPronto = async () => {
+    try {
+      if (pedidoEmPreparo.length > 0) {
+        const pedidoFinal = pedidoEmPreparo[0];
+
+        // Mover o pedido para a coleção "PEDIDO FINALIZADO"
+        await moverParaPedidosFinalizados(pedidoFinal);
+
+        // Atualizar o estado local removendo o pedido da lista em preparo
+        setPedidoEmPreparo((pedidosEmPreparo) => pedidosEmPreparo.slice(1));
+      }
+    } catch (error) {
+      console.error("Erro ao processar pedido pronto:", error);
+    }
+  };
+  useEffect(() => {
+    const unsubscribe = onSnapshot(
+      collection(db, "PEDIDOS ENTREGUES", "TELEFONE", "PEDIDOS"),
+      (snapshot) => {
+        const pedidosEntreguesData = snapshot.docs.map((doc) => doc.data());
+
+        const pedidosExcluir = listaDePedidos.filter((pedido) =>
+          pedidosEntreguesData.some(
+            (pedidoEntregue) =>
+              pedidoEntregue.numeroPedido === pedido.numeroPedido
+          )
+        );
+
+        // Exclui os pedidos que também foram entregues
+        pedidosExcluir.forEach(async (pedido) => {
+          // Exclui da coleção "PEDIDO EM PREPARO"
+          const pedidoEmPreparoRef = collection(
+            db,
+            "PEDIDO EM PREPARO",
+            "TELEFONE",
+            "PEDIDOS"
+          );
+          const pedidoEmPreparoQuery = query(
+            pedidoEmPreparoRef,
+            where("numeroPedido", "==", pedido.numeroPedido)
+          );
+          const pedidoEmPreparoSnapshot = await getDocs(pedidoEmPreparoQuery);
+
+          pedidoEmPreparoSnapshot.forEach(async (doc) => {
+            await deleteDoc(doc.ref);
+          });
+
+          // Exclui da coleção "PEDIDO FINALIZADO"
+          const pedidoFinalizadoRef = collection(
+            db,
+            "PEDIDO FINALIZADO",
+            "TELEFONE",
+            "PEDIDOS"
+          );
+          const pedidoFinalizadoQuery = query(
+            pedidoFinalizadoRef,
+            where("numeroPedido", "==", pedido.numeroPedido)
+          );
+          const pedidoFinalizadoSnapshot = await getDocs(pedidoFinalizadoQuery);
+
+          pedidoFinalizadoSnapshot.forEach(async (doc) => {
+            await deleteDoc(doc.ref);
+          });
+        });
+      }
+    );
+
+    return () => unsubscribe();
+  }, [listaDePedidos, db]);
+
   useEffect(() => {
     fetchPedidos();
     buscarPedidosRecebidos();
+    buscarPedidosEmPreparo();
+    buscarPedidosFinalizado();
   }, []);
 
   const toggleEnderecoVisivel = () => {
@@ -839,7 +1077,7 @@ export default function AppView() {
                           },
                         }}
                         onClick={() =>
-                          moverParaPedidosFinalizados(pedidoFinalizado)
+                          moverParaPedidosEntregues(pedidoFinalizado)
                         }
                       />
 
