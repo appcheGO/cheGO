@@ -670,7 +670,7 @@ const Order = () => {
                         marginLeft: ".5rem",
                       }}
                       mask="99999-999"
-                      placeholder="exemplo: 99 999-999"
+                      placeholder="exemplo: 99999-999"
                       maskChar={null}
                       type="text"
                       name="cep"
