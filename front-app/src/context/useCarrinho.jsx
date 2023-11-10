@@ -34,6 +34,8 @@ export function CarrinhoProvider({ children }) {
           cidade: data.cidade,
           estado: data.estado,
         },
+        formaDePagamento: data.formaDePagamento,
+        formaDeEntrega: data.formaDeEntrega,
       };
 
       if (userId) {
@@ -202,7 +204,6 @@ export function CarrinhoProvider({ children }) {
 
       if (qtd > 0) {
         if (item.valorOpcional !== undefined) {
-          // Adicione esta verificação para garantir que item.valorOpcional não seja nulo
           const valorTotalItem =
             (item.valor + valorAdicionais + item.valorOpcional) * qtd;
           subtotal += valorTotalItem;
@@ -218,7 +219,7 @@ export function CarrinhoProvider({ children }) {
           );
         } else {
           const valorTotalItem = (item.valor + valorAdicionais) * qtd;
-          subtotal += valorTotalItem; // Se item.valorOpcional for nulo, você pode adicionar um tratamento específico ou apenas ignorar este item.
+          subtotal += valorTotalItem;
           console.log("Item com valor opcional nulo ignorado:", item);
         }
       }
