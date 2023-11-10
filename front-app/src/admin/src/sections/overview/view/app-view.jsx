@@ -23,7 +23,7 @@ import {
 import { startOfDay, endOfDay } from "date-fns";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import CancelIcon from "@mui/icons-material/Cancel";
+//import CancelIcon from "@mui/icons-material/Cancel";
 import HomeIcon from "@mui/icons-material/Home";
 import FormatListBulletedIcon from "@mui/icons-material/FormatListBulleted";
 import Header from "../../../layouts/dashboard/header";
@@ -47,8 +47,8 @@ export default function AppView() {
   const [pedidoEntregue, setPedidoEntregue] = useState([]);
   const [pedidoEmPreparo, setPedidoEmPreparo] = useState([]);
   const [pedidoFinalizado, setPedidoFinalizado] = useState([]);
-  const [itensVisiveis, setItensVisiveis] = useState(false);
-  const [enderecoVisivel, setEnderecoVisivel] = useState(false);
+  const [itensVisiveisPorPedido, setItensVisiveisPorPedido] = useState({});
+  const [enderecoVisivelPorPedido, setEnderecoVisivelPorPedido] = useState({});
   const [listaDePedidos, setListaDePedidos] = useState([]);
   const enderecoPedidoRecebido = useState({
     rua: "",
@@ -63,6 +63,54 @@ export default function AppView() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const buscarPedidosRecebidos = async () => {
     try {
+      const pedidosEntreguesRef = collection(
+        db,
+        "PEDIDOS ENTREGUES",
+        "TELEFONE",
+        "PEDIDOS"
+      );
+      const pedidosEntreguesSnapshot = await getDocs(pedidosEntreguesRef);
+      const pedidosEntreguesData = pedidosEntreguesSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      const pedidosFinalizadosRef = collection(
+        db,
+        "PEDIDO FINALIZADO",
+        "TELEFONE",
+        "PEDIDOS"
+      );
+      const pedidosFinalizadosSnapshot = await getDocs(pedidosFinalizadosRef);
+      const pedidosFinalizadosData = pedidosFinalizadosSnapshot.docs.map(
+        (doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })
+      );
+
+      const idsPedidosFinalizadosExcluir = pedidosFinalizadosData
+        .filter((pedidoFinalizado) =>
+          pedidosEntreguesData.some(
+            (pedidoEntregue) =>
+              pedidoEntregue.numeroPedido === pedidoFinalizado.numeroPedido
+          )
+        )
+        .map((pedidoFinalizado) => pedidoFinalizado.id);
+
+      await Promise.all(
+        idsPedidosFinalizadosExcluir.map(async (idPedidoFinalizado) => {
+          const pedidoFinalizadoRef = doc(
+            db,
+            "PEDIDO FINALIZADO",
+            "TELEFONE",
+            "PEDIDOS",
+            idPedidoFinalizado
+          );
+          await deleteDoc(pedidoFinalizadoRef);
+        })
+      );
+
       const pedidosRecebidosRef = collection(
         db,
         "PEDIDOS ENTREGUES",
@@ -125,11 +173,13 @@ export default function AppView() {
     return unsubscribe;
   };
 
-  // ...
+  const prepararPedido = (pedido) => {
+    moverParaPreparo(pedido);
 
+    setPedidoEmPreparo([...pedidoEmPreparo, pedido]);
+  };
   const moverParaPreparo = async (pedido) => {
     try {
-      // Referência para a coleção "PEDIDO EM PREPARO"
       const pedidosEmPreparoRef = collection(
         db,
         "PEDIDO EM PREPARO",
@@ -137,13 +187,11 @@ export default function AppView() {
         "PEDIDOS"
       );
 
-      // Adiciona o documento na nova coleção "PEDIDO EM PREPARO"
       await addDoc(pedidosEmPreparoRef, {
         ...pedido,
-        numeroPedido: pedido.numeroPedido, // ou qualquer outra informação necessária
+        numeroPedido: pedido.numeroPedido,
       });
 
-      // Remove o documento da coleção original "PEDIDOS RECEBIDOS"
       const pedidoOriginalRef = doc(
         db,
         "PEDIDOS RECEBIDOS",
@@ -153,58 +201,9 @@ export default function AppView() {
       );
       await deleteDoc(pedidoOriginalRef);
 
-      // Atualiza o estado local (se necessário)
       setListaDePedidos((pedidos) => pedidos.filter((p) => p !== pedido));
     } catch (error) {
       console.error("Erro ao mover o pedido para preparo:", error);
-    }
-  };
-
-  // ...
-
-  const prepararPedido = (pedido) => {
-    // Chama a função para mover o pedido para a coleção "PEDIDO EM PREPARO"
-    moverParaPreparo(pedido);
-    // Atualiza o estado local ou realiza outras ações necessárias
-    setPedidoEmPreparo([...pedidoEmPreparo, pedido]);
-  };
-
-  const moverParaPedidosEntregues = async (pedidoFinalizado) => {
-    try {
-      // Referência para a coleção "PEDIDOS ENTREGUES"
-      const pedidosEntreguesRef = collection(
-        db,
-        "PEDIDOS ENTREGUES",
-        "TELEFONE",
-        "PEDIDOS"
-      );
-
-      // Adiciona o documento na nova coleção "PEDIDOS ENTREGUES"
-      const docRef = await addDoc(pedidosEntreguesRef, {
-        ...pedidoFinalizado,
-        numeroPedido: pedidoFinalizado.numeroPedido, // ou qualquer outra informação necessária
-      });
-
-      // Atualiza o estado local (se necessário)
-      setPedidoEntregue((pedidos) => [
-        ...pedidos,
-        { ...pedidoFinalizado, id: docRef.id },
-      ]);
-
-      // Agora, remova o documento da coleção "PEDIDO FINALIZADO"
-      const pedidoFinalizadoRef = doc(
-        db,
-        "PEDIDO FINALIZADO",
-        "TELEFONE",
-        "PEDIDOS",
-        pedidoFinalizado.id // Certifique-se de ajustar conforme sua estrutura de dados
-      );
-      await deleteDoc(pedidoFinalizadoRef);
-
-      // Atualiza o estado local dos pedidos finalizados após a remoção
-      buscarPedidosRecebidos();
-    } catch (error) {
-      console.error("Erro ao mover o pedido para entregues:", error);
     }
   };
 
@@ -217,37 +216,83 @@ export default function AppView() {
         "PEDIDOS"
       );
 
-      // Adiciona o documento na nova coleção "PEDIDO FINALIZADO"
       const docRef = await addDoc(pedidosFinalizadosRef, {
         ...pedidoFinalizado,
         numeroPedido: pedidoFinalizado.numeroPedido,
       });
 
-      // Atualiza o estado local (se necessário)
       setPedidoFinalizado((pedidos) => [
         ...pedidos,
         { ...pedidoFinalizado, id: docRef.id },
       ]);
 
-      // Agora, remova o documento da coleção "PEDIDO EM PREPARO"
       const pedidoEmPreparoRef = doc(
         db,
         "PEDIDO EM PREPARO",
         "TELEFONE",
         "PEDIDOS",
-        pedidoFinalizado.numeroPedido // Ajuste conforme o campo correto para identificação
+        pedidoFinalizado.numeroPedido
       );
       await deleteDoc(pedidoEmPreparoRef);
-
-      // Atualiza o estado local dos pedidos em preparo após a remoção
     } catch (error) {
       console.error("Erro ao mover o pedido finalizado:", error);
     }
   };
 
+  const moverParaPedidosEntregues = async (pedidoFinalizado) => {
+    try {
+      const numeroPedido = pedidoFinalizado.numeroPedido;
+
+      const pedidoEmPreparoRef = collection(
+        db,
+        "PEDIDO EM PREPARO",
+        "TELEFONE",
+        "PEDIDOS"
+      );
+      const pedidoEmPreparoQuery = query(
+        pedidoEmPreparoRef,
+        where("numeroPedido", "==", numeroPedido)
+      );
+      const pedidoEmPreparoSnapshot = await getDocs(pedidoEmPreparoQuery);
+
+      if (!pedidoEmPreparoSnapshot.empty) {
+        const pedidoEmPreparoDoc = pedidoEmPreparoSnapshot.docs[0];
+        await deleteDoc(pedidoEmPreparoDoc.ref);
+      }
+
+      const pedidosEntreguesRef = collection(
+        db,
+        "PEDIDOS ENTREGUES",
+        "TELEFONE",
+        "PEDIDOS"
+      );
+
+      const docRef = await addDoc(pedidosEntreguesRef, {
+        ...pedidoFinalizado,
+        numeroPedido: numeroPedido,
+      });
+
+      setPedidoEntregue((pedidos) => [
+        ...pedidos,
+        { ...pedidoFinalizado, id: docRef.id },
+      ]);
+
+      const pedidoFinalizadoRef = doc(
+        db,
+        "PEDIDO FINALIZADO",
+        "TELEFONE",
+        "PEDIDOS",
+        pedidoFinalizado.id
+      );
+      await deleteDoc(pedidoFinalizadoRef);
+
+      buscarPedidosRecebidos();
+    } catch (error) {
+      console.error("Erro ao mover o pedido para entregues:", error);
+    }
+  };
   const buscarPedidosEmPreparo = async () => {
     try {
-      // Busca os pedidos em preparo
       const pedidosEmPreparoRef = collection(
         db,
         "PEDIDO EM PREPARO",
@@ -260,7 +305,6 @@ export default function AppView() {
         ...doc.data(),
       }));
 
-      // Busca os pedidos finalizados
       const pedidosFinalizadosRef = collection(
         db,
         "PEDIDO FINALIZADO",
@@ -275,7 +319,6 @@ export default function AppView() {
         })
       );
 
-      // Identifica os IDs dos pedidos em preparo que também estão finalizados
       const idsPedidosEmPreparoExcluir = pedidosEmPreparoData
         .filter((pedidoEmPreparo) =>
           pedidosFinalizadosData.some(
@@ -285,7 +328,6 @@ export default function AppView() {
         )
         .map((pedidoEmPreparo) => pedidoEmPreparo.id);
 
-      // Exclui os pedidos em preparo que também estão finalizados
       await Promise.all(
         idsPedidosEmPreparoExcluir.map(async (idPedidoEmPreparo) => {
           const pedidoEmPreparoRef = doc(
@@ -299,7 +341,6 @@ export default function AppView() {
         })
       );
 
-      // Filtra os pedidos em preparo para manter apenas aqueles que não existem em PEDIDO FINALIZADO
       const pedidosEmPreparoFiltrados = pedidosEmPreparoData.filter(
         (pedidoEmPreparo) =>
           !pedidosFinalizadosData.some(
@@ -317,20 +358,48 @@ export default function AppView() {
 
   const buscarPedidosFinalizado = async () => {
     try {
-      const pedidosEmPreparoRef = collection(
+      const pedidosFinalizadoRef = collection(
         db,
         "PEDIDO FINALIZADO",
         "TELEFONE",
         "PEDIDOS"
       );
-      const querySnapshot = await getDocs(pedidosEmPreparoRef);
-      const pedidosEmPreparoData = querySnapshot.docs.map((doc) => ({
+      const querySnapshot = await getDocs(pedidosFinalizadoRef);
+      const pedidosFinalizadoData = querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
-      setPedidoFinalizado(pedidosEmPreparoData);
+
+      await Promise.all(
+        pedidosFinalizadoData.map(async (pedidoFinalizado) => {
+          const pedidosEntreguesRef = collection(
+            db,
+            "PEDIDOS ENTREGUES",
+            "TELEFONE",
+            "PEDIDOS"
+          );
+          const pedidosEntreguesQuery = query(
+            pedidosEntreguesRef,
+            where("numeroPedido", "==", pedidoFinalizado.numeroPedido)
+          );
+          const pedidosEntreguesSnapshot = await getDocs(pedidosEntreguesQuery);
+
+          if (!pedidosEntreguesSnapshot.empty) {
+            const pedidoFinalizadoRef = doc(
+              db,
+              "PEDIDO FINALIZADO",
+              "TELEFONE",
+              "PEDIDOS",
+              pedidoFinalizado.id
+            );
+            await deleteDoc(pedidoFinalizadoRef);
+          }
+        })
+      );
+
+      setPedidoFinalizado(pedidosFinalizadoData);
     } catch (error) {
-      console.error("Erro ao buscar pedidos em preparo:", error);
+      console.error("Erro ao buscar pedidos finalizados:", error);
     }
   };
 
@@ -339,15 +408,24 @@ export default function AppView() {
       if (pedidoEmPreparo.length > 0) {
         const pedidoFinal = pedidoEmPreparo[0];
 
-        // Mover o pedido para a coleção "PEDIDO FINALIZADO"
         await moverParaPedidosFinalizados(pedidoFinal);
 
-        // Atualizar o estado local removendo o pedido da lista em preparo
         setPedidoEmPreparo((pedidosEmPreparo) => pedidosEmPreparo.slice(1));
       }
     } catch (error) {
       console.error("Erro ao processar pedido pronto:", error);
     }
+  };
+
+  const toggleEnderecoVisivel = (numeroPedido) => {
+    setEnderecoVisivelPorPedido((prevEnderecoVisivel) => ({
+      ...prevEnderecoVisivel,
+      [numeroPedido]: !prevEnderecoVisivel[numeroPedido],
+    }));
+  };
+
+  const fecharModal = () => {
+    setModalAberto(false);
   };
   useEffect(() => {
     const unsubscribe = onSnapshot(
@@ -362,9 +440,7 @@ export default function AppView() {
           )
         );
 
-        // Exclui os pedidos que também foram entregues
         pedidosExcluir.forEach(async (pedido) => {
-          // Exclui da coleção "PEDIDO EM PREPARO"
           const pedidoEmPreparoRef = collection(
             db,
             "PEDIDO EM PREPARO",
@@ -381,7 +457,6 @@ export default function AppView() {
             await deleteDoc(doc.ref);
           });
 
-          // Exclui da coleção "PEDIDO FINALIZADO"
           const pedidoFinalizadoRef = collection(
             db,
             "PEDIDO FINALIZADO",
@@ -410,13 +485,8 @@ export default function AppView() {
     buscarPedidosEmPreparo();
     buscarPedidosFinalizado();
   }, []);
-
-  const toggleEnderecoVisivel = () => {
-    setEnderecoVisivel(!enderecoVisivel);
-  };
-
-  const fecharModal = () => {
-    setModalAberto(false);
+  const calcularSomaTotal = (itens) => {
+    return itens.reduce((total, item) => total + item.valorTotalDoProduto, 0);
   };
 
   return (
@@ -497,6 +567,7 @@ export default function AppView() {
                       border: "1px  solid #333",
                       borderRadius: "15px",
                       margin: "0.8rem",
+                      overflow: "hidden",
                     }}
                   >
                     <Box sx={{ display: "flex", flexDirection: "column" }}>
@@ -531,10 +602,16 @@ export default function AppView() {
                                 },
                               }}
                               onClick={() =>
-                                setItensVisiveis(
-                                  itensVisiveis === pedidoEntregue.itens
-                                    ? null
-                                    : pedidoEntregue.itens
+                                setItensVisiveisPorPedido(
+                                  (prevItensVisiveis) => ({
+                                    ...prevItensVisiveis,
+                                    [pedidoEntregue.numeroPedido]:
+                                      prevItensVisiveis[
+                                        pedidoEntregue.numeroPedido
+                                      ]
+                                        ? null
+                                        : pedidoEntregue.itens,
+                                  })
                                 )
                               }
                             />
@@ -549,13 +626,18 @@ export default function AppView() {
                                   backgroundColor: "transparent",
                                 },
                               }}
-                              onClick={toggleEnderecoVisivel}
+                              onClick={() =>
+                                toggleEnderecoVisivel(
+                                  pedidoEntregue.numeroPedido
+                                )
+                              }
                             />
                           </>
                         )}
                       </Box>
 
-                      {itensVisiveis === pedidoEntregue.itens &&
+                      {itensVisiveisPorPedido[pedidoEntregue.numeroPedido] ===
+                        pedidoEntregue.itens &&
                         pedidoEntregue.itens.length > 0 && (
                           <Typography>
                             {pedidoEntregue.itens.map((item, itemIndex) => (
@@ -578,9 +660,42 @@ export default function AppView() {
                                 <br />
                               </Typography>
                             ))}
+                            <Typography
+                              style={{
+                                backgroundColor: "green",
+                                paddingLeft: "8px",
+                                borderTop: "1px solid black",
+                                color: "white",
+                              }}
+                            >
+                              Valor Total do pedido: R${" "}
+                              {calcularSomaTotal(pedidoEntregue.itens)}
+                            </Typography>
+                            <Typography
+                              style={{
+                                backgroundColor: "orange",
+                                paddingLeft: "8px",
+                                borderTop: "1px solid black",
+                                color: "white",
+                              }}
+                            >
+                              Forma de Pagamento:
+                            </Typography>
+                            <Typography
+                              style={{
+                                backgroundColor: "blue",
+                                paddingLeft: "8px",
+                                borderTop: "1px solid black",
+                                color: "white",
+                              }}
+                            >
+                              Troco para:
+                            </Typography>
                           </Typography>
                         )}
-                      {enderecoVisivel && pedidoEntregue && (
+                      {enderecoVisivelPorPedido[
+                        pedidoEntregue.numeroPedido
+                      ] && (
                         <Typography
                           style={{
                             paddingLeft: "8px",
@@ -707,6 +822,7 @@ export default function AppView() {
                 border: "1px  solid #333",
                 borderRadius: "15px",
                 margin: "0.8rem",
+                overflow: "hidden",
               }}
             >
               <Typography sx={{ pl: 1, pt: 1 }}>
@@ -743,7 +859,7 @@ export default function AppView() {
                       onClick={() => prepararPedido(pedido)}
                     />
 
-                    <CancelIcon
+                    {/*<CancelIcon
                       titleAccess="negar pedido"
                       className="click"
                       sx={{
@@ -753,7 +869,7 @@ export default function AppView() {
                           backgroundColor: "transparent",
                         },
                       }}
-                    />
+                    />*/}
 
                     <FormatListBulletedIcon
                       titleAccess="Itens do pedido"
@@ -766,9 +882,14 @@ export default function AppView() {
                         },
                       }}
                       onClick={() =>
-                        setItensVisiveis(
-                          itensVisiveis === pedido.itens ? null : pedido.itens
-                        )
+                        setItensVisiveisPorPedido((prevItensVisiveis) => ({
+                          ...prevItensVisiveis,
+                          [pedido.numeroPedido]: prevItensVisiveis[
+                            pedido.numeroPedido
+                          ]
+                            ? null
+                            : pedido.itens,
+                        }))
                       }
                     />
 
@@ -782,38 +903,70 @@ export default function AppView() {
                           backgroundColor: "transparent",
                         },
                       }}
-                      onClick={toggleEnderecoVisivel}
+                      onClick={() => toggleEnderecoVisivel(pedido.numeroPedido)}
                     />
                   </>
                 )}
               </Box>
 
-              {itensVisiveis === pedido.itens && pedido.itens.length > 0 && (
-                <Box>
-                  {pedido.itens.map((item, itemIndex) => (
+              {itensVisiveisPorPedido[pedido.numeroPedido] === pedido.itens &&
+                pedido.itens.length > 0 && (
+                  <Box>
+                    {pedido.itens.map((item, itemIndex) => (
+                      <Typography
+                        key={itemIndex}
+                        style={{
+                          paddingLeft: "8px",
+                          borderTop: "1px solid black",
+                        }}
+                      >
+                        <b>Item:</b> {item.sabor}
+                        <br />
+                        <b>Quantidade:</b> {item.quantidade}
+                        <br />
+                        <b>Ingredientes:</b> {item.ingredientes}
+                        <br />
+                        <b>Observação:</b> {item.observacao}
+                        <br />
+                        <b>Valor Do Item:</b> {item.valorTotalDoProduto}
+                        <br />
+                      </Typography>
+                    ))}
                     <Typography
-                      key={itemIndex}
                       style={{
+                        backgroundColor: "green",
                         paddingLeft: "8px",
                         borderTop: "1px solid black",
+                        color: "white",
                       }}
                     >
-                      <b>Item:</b> {item.sabor}
-                      <br />
-                      <b>Quantidade:</b> {item.quantidade}
-                      <br />
-                      <b>Ingredientes:</b> {item.ingredientes}
-                      <br />
-                      <b>Observação:</b> {item.observacao}
-                      <br />
-                      <b>Valor Do Item:</b> {item.valorTotalDoProduto}
-                      <br />
+                      Valor Total do pedido: R${" "}
+                      {calcularSomaTotal(pedido.itens)}
                     </Typography>
-                  ))}
-                </Box>
-              )}
+                    <Typography
+                      style={{
+                        backgroundColor: "orange",
+                        paddingLeft: "8px",
+                        borderTop: "1px solid black",
+                        color: "white",
+                      }}
+                    >
+                      Forma de Pagamento:
+                    </Typography>
+                    <Typography
+                      style={{
+                        backgroundColor: "blue",
+                        paddingLeft: "8px",
+                        borderTop: "1px solid black",
+                        color: "white",
+                      }}
+                    >
+                      Troco para:
+                    </Typography>
+                  </Box>
+                )}
 
-              {enderecoVisivel && (
+              {enderecoVisivelPorPedido[pedido.numeroPedido] && (
                 <Typography
                   style={{
                     paddingLeft: "8px",
@@ -874,6 +1027,7 @@ export default function AppView() {
                 border: "1px  solid #333",
                 borderRadius: "15px",
                 margin: "0.8rem",
+                overflow: "hidden",
               }}
             >
               <Box sx={{ display: "flex", flexDirection: "column" }}>
@@ -910,7 +1064,7 @@ export default function AppView() {
                         onClick={() => pedidoPronto(pedidoEmPreparo)}
                       />
 
-                      <CancelIcon
+                      {/*<CancelIcon
                         titleAccess="negar pedido"
                         className="click"
                         sx={{
@@ -920,7 +1074,7 @@ export default function AppView() {
                             backgroundColor: "transparent",
                           },
                         }}
-                      />
+                      />*/}
 
                       <FormatListBulletedIcon
                         titleAccess="Itens do pedido"
@@ -933,11 +1087,14 @@ export default function AppView() {
                           },
                         }}
                         onClick={() =>
-                          setItensVisiveis(
-                            itensVisiveis === pedidoEmPreparo.itens
+                          setItensVisiveisPorPedido((prevItensVisiveis) => ({
+                            ...prevItensVisiveis,
+                            [pedidoEmPreparo.numeroPedido]: prevItensVisiveis[
+                              pedidoEmPreparo.numeroPedido
+                            ]
                               ? null
-                              : pedidoEmPreparo.itens
-                          )
+                              : pedidoEmPreparo.itens,
+                          }))
                         }
                       />
 
@@ -951,13 +1108,16 @@ export default function AppView() {
                             backgroundColor: "transparent",
                           },
                         }}
-                        onClick={toggleEnderecoVisivel}
+                        onClick={() =>
+                          toggleEnderecoVisivel(pedidoEmPreparo.numeroPedido)
+                        }
                       />
                     </>
                   )}
                 </Box>
 
-                {itensVisiveis === pedidoEmPreparo.itens &&
+                {itensVisiveisPorPedido[pedidoEmPreparo.numeroPedido] ===
+                  pedidoEmPreparo.itens &&
                   pedidoEmPreparo.itens.length > 0 && (
                     <Typography>
                       {pedidoEmPreparo.itens.map((item, itemIndex) => (
@@ -979,10 +1139,41 @@ export default function AppView() {
                           <b>Valor Do Item:</b> {item.valorTotalDoProduto}
                           <br />
                         </Typography>
-                      ))}
+                      ))}{" "}
+                      <Typography
+                        style={{
+                          backgroundColor: "green",
+                          paddingLeft: "8px",
+                          borderTop: "1px solid black",
+                          color: "white",
+                        }}
+                      >
+                        Valor Total do pedido: R${" "}
+                        {calcularSomaTotal(pedidoEmPreparo.itens)}
+                      </Typography>
+                      <Typography
+                        style={{
+                          backgroundColor: "orange",
+                          paddingLeft: "8px",
+                          borderTop: "1px solid black",
+                          color: "white",
+                        }}
+                      >
+                        Forma de Pagamento:
+                      </Typography>
+                      <Typography
+                        style={{
+                          backgroundColor: "blue",
+                          paddingLeft: "8px",
+                          borderTop: "1px solid black",
+                          color: "white",
+                        }}
+                      >
+                        Troco para:
+                      </Typography>
                     </Typography>
                   )}
-                {enderecoVisivel && pedidoEmPreparo && (
+                {enderecoVisivelPorPedido[pedidoEmPreparo.numeroPedido] && (
                   <Typography
                     style={{
                       paddingLeft: "8px",
@@ -1043,6 +1234,7 @@ export default function AppView() {
                 border: "1px  solid #333",
                 borderRadius: "15px",
                 margin: "0.8rem",
+                overflow: "hidden",
               }}
             >
               <Box sx={{ display: "flex", flexDirection: "column" }}>
@@ -1081,7 +1273,7 @@ export default function AppView() {
                         }
                       />
 
-                      <CancelIcon
+                      {/*<CancelIcon
                         titleAccess="negar pedido"
                         className="click"
                         sx={{
@@ -1091,7 +1283,7 @@ export default function AppView() {
                             backgroundColor: "transparent",
                           },
                         }}
-                      />
+                      />*/}
 
                       <FormatListBulletedIcon
                         titleAccess="Itens do pedido"
@@ -1104,11 +1296,14 @@ export default function AppView() {
                           },
                         }}
                         onClick={() =>
-                          setItensVisiveis(
-                            itensVisiveis === pedidoFinalizado.itens
+                          setItensVisiveisPorPedido((prevItensVisiveis) => ({
+                            ...prevItensVisiveis,
+                            [pedidoFinalizado.numeroPedido]: prevItensVisiveis[
+                              pedidoFinalizado.numeroPedido
+                            ]
                               ? null
-                              : pedidoFinalizado.itens
-                          )
+                              : pedidoFinalizado.itens,
+                          }))
                         }
                       />
 
@@ -1122,13 +1317,16 @@ export default function AppView() {
                             backgroundColor: "transparent",
                           },
                         }}
-                        onClick={toggleEnderecoVisivel}
+                        onClick={() =>
+                          toggleEnderecoVisivel(pedidoFinalizado.numeroPedido)
+                        }
                       />
                     </>
                   )}
                 </Box>
 
-                {itensVisiveis === pedidoFinalizado.itens &&
+                {itensVisiveisPorPedido[pedidoFinalizado.numeroPedido] ===
+                  pedidoFinalizado.itens &&
                   pedidoFinalizado.itens.length > 0 && (
                     <Typography>
                       {pedidoFinalizado.itens.map((item, itemIndex) => (
@@ -1150,10 +1348,41 @@ export default function AppView() {
                           <b>Valor Do Item:</b> {item.valorTotalDoProduto}
                           <br />
                         </Typography>
-                      ))}
+                      ))}{" "}
+                      <Typography
+                        style={{
+                          backgroundColor: "green",
+                          paddingLeft: "8px",
+                          borderTop: "1px solid black",
+                          color: "white",
+                        }}
+                      >
+                        Valor Total do pedido: R${" "}
+                        {calcularSomaTotal(pedidoFinalizado.itens)}
+                      </Typography>
+                      <Typography
+                        style={{
+                          backgroundColor: "orange",
+                          paddingLeft: "8px",
+                          borderTop: "1px solid black",
+                          color: "white",
+                        }}
+                      >
+                        Forma de Pagamento:
+                      </Typography>
+                      <Typography
+                        style={{
+                          backgroundColor: "blue",
+                          paddingLeft: "8px",
+                          borderTop: "1px solid black",
+                          color: "white",
+                        }}
+                      >
+                        Troco para:
+                      </Typography>
                     </Typography>
                   )}
-                {enderecoVisivel && pedidoFinalizado && (
+                {enderecoVisivelPorPedido[pedidoFinalizado.numeroPedido] && (
                   <Typography
                     style={{
                       paddingLeft: "8px",

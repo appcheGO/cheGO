@@ -117,7 +117,11 @@ const Order = () => {
     } else {
       if (isValid) {
         try {
-          const userId = await saveUserData(data);
+          const userId = await saveUserData(
+            data,
+            data.formaDePagamento,
+            data.formaDeEntrega
+          );
 
           createWhatsAppMessage(data);
 
@@ -140,7 +144,7 @@ const Order = () => {
     }
   };
   const handleCloseModal = () => {
-    setIsChangeNeeded(false); // Fechar o modal
+    setIsChangeNeeded(false);
   };
 
   const checkCEP = (e) => {
@@ -565,7 +569,7 @@ const Order = () => {
               <RadioGroup
                 sx={{ paddingLeft: "1.2rem" }}
                 name="formaDeEntrega"
-                value={isEntrega} // Define o valor com base no estado isEntrega
+                value={isEntrega}
                 onChange={(e) => setIsEntrega(e.target.value === "Entrega")}
               >
                 <Box
