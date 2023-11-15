@@ -109,23 +109,28 @@ const Order = () => {
 
   const handleFormSubmit = async (data) => {
     const totalValue = calculateSubtotal(cart);
-
+  
     if (totalValue === 0) {
-      alert(
-        "Carrinho vazio. Adicione itens ao carrinho antes de enviar o pedido."
-      );
+      alert("Carrinho vazio. Adicione itens ao carrinho antes de enviar o pedido.");
     } else {
       if (isValid) {
         try {
+          // Adicione o valor do troco aos dados que serão salvos
+          const userDataWithChange = {
+            ...data,
+            isChangeNeeded,
+            changeAmount: isChangeNeeded ? changeAmount : 0,
+          };
+  
           const userId = await saveUserData(
-            data,
+            userDataWithChange,
             data.formaDePagamento,
             data.formaDeEntrega
           );
-
-          createWhatsAppMessage(data);
-
-          await sendOrder(data, userId);
+  
+          createWhatsAppMessage(userDataWithChange);
+  
+          await sendOrder(userDataWithChange, userId);
           handleOpen();
         } catch (error) {
           console.error("Erro ao salvar os dados:", error);
@@ -138,6 +143,7 @@ const Order = () => {
 
   const handleOpen = () => {
     if (isValid) {
+      // eslint-disable-next-line no-undef
       setOpen(true);
     } else {
       console.log("Form is not valid");
@@ -156,7 +162,7 @@ const Order = () => {
       setValue("neighborhood");
       setValue("city");
       setValue("uf");
-      console.log(e);
+      
     } else {
       fetch(`https://viacep.com.br/ws/${cep}/json/`)
         .then((res) => res.json())
@@ -239,7 +245,7 @@ const Order = () => {
             item.opcionais === 0
           ) {
             message += `Valor do opcional: Grátis\n`;
-            console.log(item.valorOpcional);
+        
           } else {
             message += `Valor do opcional: R$ ${item.valorOpcional}\n`;
           }
@@ -344,7 +350,7 @@ const Order = () => {
             item.opcionais === 0
           ) {
             message += `Valor do opcional: Grátis\n`;
-            console.log(item.valorOpcional);
+           
           } else {
             message += `Valor do opcional: R$ ${item.valorOpcional}\n`;
           }
@@ -406,7 +412,7 @@ const Order = () => {
       message +=
         "Qualquer duvida eu acesso por essa localização pelo Google Maps:\nhttps://maps.app.goo.gl/6hMUzge2SxM1zGks9";
 
-      console.log(message);
+   
 
       const encodedMessage = encodeURIComponent(message);
       const whatsappLink = `https://wa.me/5585982168756?text=${encodedMessage}`;
