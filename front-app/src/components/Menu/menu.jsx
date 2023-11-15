@@ -80,19 +80,19 @@ export default function Menu() {
       .then((response) => response.json())
       .then((data) => {
         setFirebaseData(data);
-        console.log("Dados do Firebase:", data);
+     
 
         const bordaOptions = data.opcionais[activeTab] || [];
         setBordaOptions(bordaOptions);
-        console.log("Opcionais do Firebase:", bordaOptions);
+       
       })
       .catch((error) => {
         console.error("Erro ao buscar dados:", error);
       });
   }, [activeTab]);
 
-  console.log("borda inferior, :", bordaOptions);
-  console.log([activeTab]);
+
+ 
 
   useEffect(() => {
     let objGenerico = [];
@@ -123,11 +123,11 @@ export default function Menu() {
 
     // const valorOpcional = bordaOptions.map((item) => item.valorAdc);
     const valorOpcional = parseFloat(opcionais.split("_")[1]);
-    console.log("valor do opcional" + typeof valorOpcional);
+   
 
     // const opcionalSelecionado = bordaOptions.map((item) => item.opcao);
     const opcionalSelecionado = opcionais.split("_")[0];
-    console.log("Novo opcional", opcionalSelecionado);
+    
 
     const valorTotalAdicionais =
       totais.length > 0
@@ -149,7 +149,7 @@ export default function Menu() {
       valorTotalDoProduto,
     };
 
-    console.log(itemToAddWithQuantity);
+    
 
     const itemExistsInCart = cart.find((item) => {
       return (

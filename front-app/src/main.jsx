@@ -2,12 +2,9 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App.jsx";
-
 import { Outlet, RouterProvider, createBrowserRouter } from "react-router-dom";
 import Home from "./pages/Home.jsx";
-import RegisterScreen from "./pages/RegisterScreen.jsx";
 import Order from "./pages/Order.jsx";
-import OrdersWithoutRegistration from "./pages/OrdersWithoutRegistration.jsx";
 import LoginPage from "../src/admin/src/pages/login.jsx";
 import AppPage from "./admin/src/pages/app.jsx";
 // Importe a tela de dashboard
@@ -22,16 +19,8 @@ const routes = [
         element: <Home />,
       },
       {
-        path: "/cadastro",
-        element: <RegisterScreen />,
-      },
-      {
         path: "/pedido",
         element: <Order />,
-      },
-      {
-        path: "/pedidosemcadastro",
-        element: <OrdersWithoutRegistration />,
       },
     ],
   },
@@ -45,7 +34,7 @@ const routes = [
       },
       {
         path: "dashboard",
-        element: <AppPage />, 
+        element: <AppPage />,
       },
     ],
   },

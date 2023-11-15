@@ -22,6 +22,7 @@ export function CarrinhoProvider({ children }) {
       if (!orderNumber) {
         orderNumber = generateUniqueOrderNumber();
       }
+  
       const DadosPessoais = {
         nome: data.nome,
         telefone: data.telefone,
@@ -36,8 +37,9 @@ export function CarrinhoProvider({ children }) {
         },
         formaDePagamento: data.formaDePagamento,
         formaDeEntrega: data.formaDeEntrega,
+        troco: data.isChangeNeeded ? data.changeAmount : 0, // Incluindo o valor do troco
       };
-
+  
       if (userId) {
         const orderPath = `PEDIDOS RECEBIDOS/TELEFONE/PEDIDOS/${orderNumber}`;
         const orderDocRef = doc(db, orderPath);
@@ -55,13 +57,14 @@ export function CarrinhoProvider({ children }) {
           dataPedido: new Date(),
         });
       }
-
+  
       setTempProducts([]);
       return orderNumber;
     } catch (error) {
       console.error("Erro ao enviar o pedido: ", error);
     }
   };
+  
 
   const saveCartToSessionStorage = (cart) => {
     sessionStorage.setItem("itensSelecionados", JSON.stringify(cart));
@@ -159,7 +162,7 @@ export function CarrinhoProvider({ children }) {
     if (tempProducts.length > 0) {
       try {
         setTempProducts([]);
-        console.log("Pedido enviado com sucesso.");
+        
       } catch (error) {
         console.error("Erro ao enviar o pedido: ", error);
       }
@@ -207,20 +210,11 @@ export function CarrinhoProvider({ children }) {
           const valorTotalItem =
             (item.valor + valorAdicionais + item.valorOpcional) * qtd;
           subtotal += valorTotalItem;
-          console.log(
-            "valores:",
-            valorTotalItem,
-            "valor do item:",
-            item.valor,
-            "valor do adicional:",
-            valorAdicionais,
-            "valor do opcional:",
-            item.valorOpcional
-          );
+          
         } else {
           const valorTotalItem = (item.valor + valorAdicionais) * qtd;
           subtotal += valorTotalItem;
-          console.log("Item com valor opcional nulo ignorado:", item);
+         
         }
       }
     });
