@@ -36,6 +36,7 @@ export function CarrinhoProvider({ children }) {
         },
         formaDePagamento: data.formaDePagamento,
         formaDeEntrega: data.formaDeEntrega,
+        troco: data.isChangeNeeded ? data.changeAmount : 0,
       };
 
       if (userId) {

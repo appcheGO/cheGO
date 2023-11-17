@@ -109,23 +109,28 @@ const Order = () => {
 
   const handleFormSubmit = async (data) => {
     const totalValue = calculateSubtotal(cart);
-
+  
     if (totalValue === 0) {
-      alert(
-        "Carrinho vazio. Adicione itens ao carrinho antes de enviar o pedido."
-      );
+      alert("Carrinho vazio. Adicione itens ao carrinho antes de enviar o pedido.");
     } else {
       if (isValid) {
         try {
+        
+          const userDataWithChange = {
+            ...data,
+            isChangeNeeded,
+            changeAmount: isChangeNeeded ? changeAmount : 0,
+          };
+  
           const userId = await saveUserData(
-            data,
+            userDataWithChange,
             data.formaDePagamento,
             data.formaDeEntrega
           );
-
-          createWhatsAppMessage(data);
-
-          await sendOrder(data, userId);
+  
+          createWhatsAppMessage(userDataWithChange);
+  
+          await sendOrder(userDataWithChange, userId);
           handleOpen();
         } catch (error) {
           console.error("Erro ao salvar os dados:", error);
