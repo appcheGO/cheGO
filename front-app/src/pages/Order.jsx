@@ -138,6 +138,7 @@ const Order = () => {
 
   const handleOpen = () => {
     if (isValid) {
+      // eslint-disable-next-line no-undef
       setOpen(true);
     } else {
       console.log("Form is not valid");
@@ -674,7 +675,7 @@ const Order = () => {
                         marginLeft: ".5rem",
                       }}
                       mask="99999-999"
-                      placeholder="exemplo: 99 999-999"
+                      placeholder="exemplo: 99999-999"
                       maskChar={null}
                       type="text"
                       name="cep"
