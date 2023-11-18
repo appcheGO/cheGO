@@ -223,12 +223,10 @@ export default function Cart() {
                     </Modal>
                   </>
                 ) : (
-                  <>
-                    <ShoppingCartOutlinedIcon
+                  <ShoppingCartOutlinedIcon
                       className="iconsfooter"
                       onClick={openListItems}
                     />
-                  </>
                 )}
                 {cart.length > 0 ? (
                   <Box
