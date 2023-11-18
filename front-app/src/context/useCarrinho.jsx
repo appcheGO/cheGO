@@ -1,7 +1,16 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useEffect, useState } from "react";
-import { getFirestore, doc, setDoc } from "firebase/firestore";
-import app from "../Firebase/firebase";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+} from 'react';
+import {
+  getFirestore,
+  doc,
+  setDoc,
+} from 'firebase/firestore';
+import app from '../Firebase/firebase';
 
 const CarrinhoContext = createContext();
 
@@ -22,6 +31,7 @@ export function CarrinhoProvider({ children }) {
       if (!orderNumber) {
         orderNumber = generateUniqueOrderNumber();
       }
+
       const DadosPessoais = {
         nome: data.nome,
         telefone: data.telefone,
@@ -49,7 +59,10 @@ export function CarrinhoProvider({ children }) {
         });
       } else {
         const generalOrderPath = `PEDIDOS RECEBIDOS/TELEFONE/PEDIDOS/${orderNumber}`;
-        const generalOrderDocRef = doc(db, generalOrderPath);
+        const generalOrderDocRef = doc(
+          db,
+          generalOrderPath
+        );
         await setDoc(generalOrderDocRef, {
           DadosPessoais,
           itens: tempProducts,
@@ -60,12 +73,15 @@ export function CarrinhoProvider({ children }) {
       setTempProducts([]);
       return orderNumber;
     } catch (error) {
-      console.error("Erro ao enviar o pedido: ", error);
+      console.error('Erro ao enviar o pedido: ', error);
     }
   };
 
   const saveCartToSessionStorage = (cart) => {
-    sessionStorage.setItem("itensSelecionados", JSON.stringify(cart));
+    sessionStorage.setItem(
+      'itensSelecionados',
+      JSON.stringify(cart)
+    );
   };
 
   const isSameCartItem = (item1, item2) => {
@@ -75,14 +91,18 @@ export function CarrinhoProvider({ children }) {
     return (
       item1.id === item2.id &&
       item1.opicionais === item2.opicionais &&
-      item1.refrigeranteDoCombo === item2.refrigeranteDoCombo &&
+      item1.refrigeranteDoCombo ===
+        item2.refrigeranteDoCombo &&
       item1.observacao === item2.observacao &&
       item1.valor === item2.valor &&
       areAdditionalsSame(item1.adicionais, item2.adicionais)
     );
   };
 
-  const areAdditionalsSame = (additionals1, additionals2) => {
+  const areAdditionalsSame = (
+    additionals1,
+    additionals2
+  ) => {
     if (!additionals1 || !additionals2) {
       return false;
     }
@@ -133,10 +153,13 @@ export function CarrinhoProvider({ children }) {
 
       setCart(updatedCart);
       saveCartToSessionStorage(updatedCart);
-      setTempProducts((prevProducts) => [...prevProducts, item]);
+      setTempProducts((prevProducts) => [
+        ...prevProducts,
+        item,
+      ]);
     } else {
       console.log(
-        "Não é possível adicionar itens ao carrinho, o estabelecimento está fechado."
+        'Não é possível adicionar itens ao carrinho, o estabelecimento está fechado.'
       );
     }
   };
@@ -160,9 +183,8 @@ export function CarrinhoProvider({ children }) {
     if (tempProducts.length > 0) {
       try {
         setTempProducts([]);
-        console.log("Pedido enviado com sucesso.");
       } catch (error) {
-        console.error("Erro ao enviar o pedido: ", error);
+        console.error('Erro ao enviar o pedido: ', error);
       }
     }
 
@@ -184,7 +206,8 @@ export function CarrinhoProvider({ children }) {
 
   const deleteFromCart = (item) => {
     const updatedCart = cart.filter(
-      (itemCart) => JSON.stringify(itemCart) !== JSON.stringify(item)
+      (itemCart) =>
+        JSON.stringify(itemCart) !== JSON.stringify(item)
     );
     setCart(updatedCart);
     saveCartToSessionStorage(updatedCart);
@@ -198,30 +221,26 @@ export function CarrinhoProvider({ children }) {
       let valorAdicionais = 0;
 
       if (item.adicionais && item.adicionais.length > 0) {
-        valorAdicionais = item.adicionais.reduce((total, adicional) => {
-          return total + adicional.valor * adicional.qtde;
-        }, 0);
+        valorAdicionais = item.adicionais.reduce(
+          (total, adicional) => {
+            return total + adicional.valor * adicional.qtde;
+          },
+          0
+        );
       }
 
       if (qtd > 0) {
         if (item.valorOpcional !== undefined) {
           const valorTotalItem =
-            (item.valor + valorAdicionais + item.valorOpcional) * qtd;
+            (item.valor +
+              valorAdicionais +
+              item.valorOpcional) *
+            qtd;
           subtotal += valorTotalItem;
-          console.log(
-            "valores:",
-            valorTotalItem,
-            "valor do item:",
-            item.valor,
-            "valor do adicional:",
-            valorAdicionais,
-            "valor do opcional:",
-            item.valorOpcional
-          );
         } else {
-          const valorTotalItem = (item.valor + valorAdicionais) * qtd;
+          const valorTotalItem =
+            (item.valor + valorAdicionais) * qtd;
           subtotal += valorTotalItem;
-          console.log("Item com valor opcional nulo ignorado:", item);
         }
       }
     });
@@ -232,7 +251,7 @@ export function CarrinhoProvider({ children }) {
   const clearCart = () => {
     setCart([]);
 
-    sessionStorage.removeItem("itensSelecionados");
+    sessionStorage.removeItem('itensSelecionados');
   };
 
   const openingHours = () => {
@@ -244,9 +263,11 @@ export function CarrinhoProvider({ children }) {
 
     if (
       (currentHour > openingTime ||
-        (currentHour === openingTime && currentMinute >= 0)) &&
+        (currentHour === openingTime &&
+          currentMinute >= 0)) &&
       (currentHour < closingTime ||
-        (currentHour === closingTime && currentMinute <= 59))
+        (currentHour === closingTime &&
+          currentMinute <= 59))
     ) {
       setIsAlertOpen(true);
     } else {
