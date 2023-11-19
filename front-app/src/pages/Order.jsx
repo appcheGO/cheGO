@@ -491,6 +491,7 @@ const Order = () => {
       window.open(whatsappLink);
     }
   };
+  
 
   return (
     <Box
@@ -561,8 +562,8 @@ const Order = () => {
                         fontWeight: '500',
                         marginLeft: '.5rem',
                       }}
-                      mask="99 9 99999999"
-                      placeholder="exemplo: 99 9 99999999"
+                      mask="(99) 9 99999999"
+                      placeholder="(99) 9 99999999"
                       maskChar={null}
                       value={numberPhone}
                       {...register('telefone')}
@@ -771,7 +772,7 @@ const Order = () => {
                         marginLeft: '.5rem',
                       }}
                       mask="99999-999"
-                      placeholder="exemplo: 99999-999"
+                      placeholder="99999-999"
                       maskChar={null}
                       type="text"
                       name="cep"

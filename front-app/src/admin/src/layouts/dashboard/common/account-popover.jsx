@@ -18,8 +18,8 @@ import { account } from "../../../../_mock/account";
 
 export default function AccountPopover() {
   const [open, setOpen] = useState(null);
-  const auth = getAuth(); // Obtenha a instância de autenticação
-  const Navigate = useNavigate(); // Obtenha o objeto de histórico de navegação
+  const auth = getAuth(); 
+  const Navigate = useNavigate(); 
 
   const handleOpen = (event) => {
     setOpen(event.currentTarget);
