@@ -39,7 +39,10 @@ export default function LoginView() {
   const handleLogin = async () => {
     try {
       await signInWithEmailAndPassword(auth, email, password);
-
+      
+      // Adicionando um log para indicar que o usuário está logado
+      console.log("Usuário logado com sucesso:", auth.currentUser);
+  
       router.push("/admin/dashboard");
     } catch (error) {
       console.error("Erro de autenticação:", error);

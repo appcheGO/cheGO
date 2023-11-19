@@ -7,7 +7,6 @@ import Home from "./pages/Home.jsx";
 import Order from "./pages/Order.jsx";
 import LoginPage from "../src/admin/src/pages/login.jsx";
 import AppPage from "./admin/src/pages/app.jsx";
-// Importe a tela de dashboard
 
 const routes = [
   {

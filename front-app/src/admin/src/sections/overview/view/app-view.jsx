@@ -9,6 +9,7 @@ import {
   deleteDoc,
   getDocs,
   where,
+  orderBy,
 } from "firebase/firestore";
 import { initializeApp } from "firebase/app";
 import {
@@ -28,7 +29,6 @@ import HomeIcon from "@mui/icons-material/Home";
 import LocalPrintshopRoundedIcon from "@mui/icons-material/LocalPrintshopRounded";
 import Header from "../../../layouts/dashboard/header";
 import FormatListBulletedRoundedIcon from "@mui/icons-material/FormatListBulletedRounded";
-
 
 export default function AppView() {
   const firebaseConfig = {
@@ -52,7 +52,6 @@ export default function AppView() {
   const [itensVisiveisPorPedido, setItensVisiveisPorPedido] = useState({});
   const [enderecoVisivelPorPedido, setEnderecoVisivelPorPedido] = useState({});
   const [listaDePedidos, setListaDePedidos] = useState([]);
- 
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const buscarPedidosRecebidos = async () => {
@@ -146,7 +145,8 @@ export default function AppView() {
   };
   const fetchPedidos = async () => {
     const ordersQuery = query(
-      collection(db, "PEDIDOS RECEBIDOS", "TELEFONE", "PEDIDOS")
+      collection(db, "PEDIDOS RECEBIDOS", "TELEFONE", "PEDIDOS"),
+      orderBy("dataPedido", "desc")
     );
 
     const unsubscribe = onSnapshot(ordersQuery, (snapshot) => {
@@ -172,7 +172,7 @@ export default function AppView() {
 
     setPedidoEmPreparo([...pedidoEmPreparo, pedido]);
     try {
-      const mensagemCliente = `Olá ${pedido.DadosPessoais.nome}, seu pedido foi aceito e está em preparo! 😍 Agradecemos pela preferência.`;
+      const mensagemCliente = `Olá ${pedido.DadosPessoais.nome}, seu pedido foi aceito e está em preparo!😍 Agradecemos pela preferência.`;
 
       sendWhatsappMessage(pedido.DadosPessoais.telefone, mensagemCliente);
     } catch (error) {
@@ -291,13 +291,21 @@ export default function AppView() {
       await deleteDoc(pedidoFinalizadoRef);
 
       buscarPedidosRecebidos();
+      const retiradaDoPedido = pedidoFinalizado.DadosPessoais.formaDeEntrega;
       const numeroTelefone = pedidoFinalizado.DadosPessoais.telefone;
-      const mensagem = encodeURIComponent(
+      const mensagemEntrega = encodeURIComponent(
         `${pedidoFinalizado.DadosPessoais.nome}, vim trazer a melhor notícia do dia, seu pedido saiu para a entrega! 🏍️`
       );
-      const linkWhatsapp = `https://api.whatsapp.com/send?phone=55${numeroTelefone}&text=${mensagem}`;
-
-      window.open(linkWhatsapp, "_blank");
+      const mensagemRetirada = encodeURIComponent(
+        `${pedidoFinalizado.DadosPessoais.nome}, vim trazer a melhor notícia do dia, seu pedido está pronto para ser retirado!`
+      );
+      if (retiradaDoPedido === "Entrega") {
+        const linkWhatsapp = `https://api.whatsapp.com/send?phone=55${numeroTelefone}&text=${mensagemEntrega}`;
+        window.open(linkWhatsapp, "_blank");
+      } else {
+        const linkWhatsapp = `https://api.whatsapp.com/send?phone=55${numeroTelefone}&text=${mensagemRetirada}`;
+        window.open(linkWhatsapp, "_blank");
+      }
     } catch (error) {
       console.error("Erro ao mover o pedido para entregues:", error);
     }
@@ -798,138 +806,151 @@ export default function AppView() {
                         )}
                       </Box>
 
-                      {itensVisiveisPorPedido[pedidoEntregue.numeroPedido] === pedidoEntregue.itens &&
-                pedidoEntregue.itens.length > 0 && (
-                  <Box>
-                    {pedidoEntregue.DadosPessoais &&
-                      pedidoEntregue.itens.map((item, itemIndex) => (
+                      {itensVisiveisPorPedido[pedidoEntregue.numeroPedido] ===
+                        pedidoEntregue.itens &&
+                        pedidoEntregue.itens.length > 0 && (
+                          <Box>
+                            {pedidoEntregue.DadosPessoais &&
+                              pedidoEntregue.itens.map((item, itemIndex) => (
+                                <Typography
+                                  key={itemIndex}
+                                  style={{
+                                    paddingLeft: "8px",
+                                    borderTop: "1px solid black",
+                                  }}
+                                >
+                                  <b>Item:</b> {item.sabor}
+                                  <br />
+                                  <b>Quantidade:</b> {item.quantidade}
+                                  <br />
+                                  {item.valorOpcional === 0 ||
+                                  item.valorOpcional === "0" ||
+                                  item.valorOpcional === "" ? (
+                                    <>
+                                      <b>Opcional:</b>
+                                      {item.opcionalSelecionado}
+                                      <br />
+                                      <b>Valor opcional:</b>Grátis
+                                    </>
+                                  ) : (
+                                    <>
+                                      {item.opcionais == 0 ? (
+                                        console.log("escolheu bebida")
+                                      ) : (
+                                        <>
+                                          {" "}
+                                          <b>Opcional:</b>
+                                          {item.opcionalSelecionado}
+                                          <br />
+                                          <b>Valor opcional:</b>
+                                          R$ {item.valorOpcional}
+                                        </>
+                                      )}
+                                    </>
+                                  )}
+                                  {item.observacao === "" ? (
+                                    console.log("nao tem observacao")
+                                  ) : (
+                                    <>
+                                      <br />
+                                      <b>Observação:</b>
+                                      {item.observacao}
+                                    </>
+                                  )}
+                                  {item.opcionais == 0 ? (
+                                    console.log(
+                                      "nao precisa de espaco se forbebida"
+                                    )
+                                  ) : (
+                                    <br />
+                                  )}
+                                  {item.adicionais.length === 0 ? (
+                                    console.log("não tem adicionais")
+                                  ) : (
+                                    <>
+                                      <b>Adicionais:</b>
+                                      <br />
+                                      {item.adicionais.map(
+                                        (adicional, index) => (
+                                          <div key={index}>
+                                            <p>
+                                              {adicional.name}-({adicional.qtde}
+                                              x)
+                                            </p>
+                                          </div>
+                                        )
+                                      )}
+                                      <b>Valor Total de adicionais</b>: R${" "}
+                                      {item.valorTotalAdicionais.toFixed(2)}
+                                      <br />
+                                    </>
+                                  )}
+                                  <b>Valor Do Item:</b> R${" "}
+                                  {item.valorTotalDoProduto}
+                                  <br />
+                                </Typography>
+                              ))}
+                            <Typography
+                              style={{
+                                backgroundColor: "green",
+                                paddingLeft: "8px",
+                                borderTop: "1px solid black",
+                                color: "white",
+                              }}
+                            >
+                              Valor Total do pedido: R${" "}
+                              {calcularSomaTotal(pedidoEntregue.itens).toFixed(
+                                2
+                              )}
+                            </Typography>
+                            {pedidoEntregue.DadosPessoais.troco === 0 ||
+                            pedidoEntregue.DadosPessoais.troco === null ||
+                            pedidoEntregue.DadosPessoais.troco === undefined ||
+                            pedidoEntregue.DadosPessoais.troco === "0" ? (
+                              console.log("nao precisou de troco/ta trocado")
+                            ) : (
+                              <Typography
+                                style={{
+                                  backgroundColor: "blue",
+                                  paddingLeft: "8px",
+                                  borderTop: "1px solid black",
+                                  color: "white",
+                                }}
+                              >
+                                Troco para:{pedidoEntregue.DadosPessoais.troco}
+                              </Typography>
+                            )}
+                          </Box>
+                        )}
+
+                      {enderecoVisivelPorPedido[
+                        pedidoEntregue.numeroPedido
+                      ] && (
                         <Typography
-                          key={itemIndex}
                           style={{
                             paddingLeft: "8px",
                             borderTop: "1px solid black",
                           }}
                         >
-                          <b>Item:</b> {item.sabor}
+                          <b>Endereço :</b>
                           <br />
-                          <b>Quantidade:</b> {item.quantidade}
+                          Rua: {pedidoEntregue.DadosPessoais.endereco.rua}
                           <br />
-                          {item.valorOpcional === 0 ||
-                          item.valorOpcional === "0" ||
-                          item.valorOpcional === "" ? (
-                            <>
-                              <b>Opcional:</b>
-                              {item.opcionalSelecionado}
-                              <br />
-                              <b>Valor opcional:</b>Grátis
-                            </>
-                          ) : (
-                            <>
-                              {item.opcionais == 0 ? (
-                                console.log("escolheu bebida")
-                              ) : (
-                                <>
-                                  {" "}
-                                  <b>Opcional:</b>
-                                  {item.opcionalSelecionado}
-                                  <br />
-                                  <b>Valor opcional:</b>
-                                  R$ {item.valorOpcional}
-                                </>
-                              )}
-                            </>
-                          )}
-                          {item.observacao === "" ? (
-                            console.log("nao tem observacao")
-                          ) : (
-                            <>
-                              <br />
-                              <b>Observação:</b>
-                              {item.observacao}
-                            </>
-                          )}
-                          {item.opcionais == 0 ? (
-                            console.log("nao precisa de espaco se forbebida")
-                          ) : (
-                            <br />
-                          )}
-                          {item.adicionais.length === 0 ? (
-                            console.log("não tem adicionais")
-                          ) : (
-                            <>
-                              <b>Adicionais:</b>
-                              <br />
-                              {item.adicionais.map((adicional, index) => (
-                                <div key={index}>
-                                  <p>
-                                    {adicional.name}-({adicional.qtde}x)
-                                  </p>
-                                </div>
-                              ))}
-                              <b>Valor Total de adicionais</b>: R${" "}
-                              {item.valorTotalAdicionais.toFixed(2)}
-                              <br />
-                            </>
-                          )}
-                          <b>Valor Do Item:</b> R$ {item.valorTotalDoProduto}
+                          Bairro: {pedidoEntregue.DadosPessoais.endereco.bairro}
                           <br />
+                          Casa/Apto:{" "}
+                          {pedidoEntregue.DadosPessoais.endereco.casaApto}
+                          <br />
+                          CEP: {pedidoEntregue.DadosPessoais.endereco.cep}
+                          <br />
+                          Cidade: {pedidoEntregue.DadosPessoais.endereco.cidade}
+                          <br />
+                          Complemento:{" "}
+                          {pedidoEntregue.DadosPessoais.endereco.complemento}
+                          <br />
+                          Estado: {pedidoEntregue.DadosPessoais.endereco.estado}
                         </Typography>
-                      ))}
-                    <Typography
-                      style={{
-                        backgroundColor: "green",
-                        paddingLeft: "8px",
-                        borderTop: "1px solid black",
-                        color: "white",
-                      }}
-                    >
-                      Valor Total do pedido: R${" "}
-                      {calcularSomaTotal(pedidoEntregue.itens).toFixed(2)}
-                    </Typography>
-                    {pedidoEntregue.DadosPessoais.troco === 0 ||
-                    pedidoEntregue.DadosPessoais.troco === null ||
-                    pedidoEntregue.DadosPessoais.troco === undefined ||
-                    pedidoEntregue.DadosPessoais.troco === "0" ? (
-                      console.log("nao precisou de troco/ta trocado")
-                    ) : (
-                      <Typography
-                        style={{
-                          backgroundColor: "blue",
-                          paddingLeft: "8px",
-                          borderTop: "1px solid black",
-                          color: "white",
-                        }}
-                      >
-                        Troco para:{pedidoEntregue.DadosPessoais.troco}
-                      </Typography>
-                    )}
-                  </Box>
-                )}
-
-              {enderecoVisivelPorPedido[pedidoEntregue.numeroPedido] && (
-                <Typography
-                  style={{
-                    paddingLeft: "8px",
-                    borderTop: "1px solid black",
-                  }}
-                >
-                  <b>Endereço :</b>
-                  <br />
-                  Rua: {pedidoEntregue.DadosPessoais.endereco.rua}
-                  <br />
-                  Bairro: {pedidoEntregue.DadosPessoais.endereco.bairro}
-                  <br />
-                  Casa/Apto: {pedidoEntregue.DadosPessoais.endereco.casaApto}
-                  <br />
-                  CEP: {pedidoEntregue.DadosPessoais.endereco.cep}
-                  <br />
-                  Cidade: {pedidoEntregue.DadosPessoais.endereco.cidade}
-                  <br />
-                  Complemento: {pedidoEntregue.DadosPessoais.endereco.complemento}
-                  <br />
-                  Estado: {pedidoEntregue.DadosPessoais.endereco.estado}
-                </Typography>
-              )}
+                      )}
                     </Box>
                   </Box>
                 ))}
@@ -1002,11 +1023,11 @@ export default function AppView() {
       >
         <Box
           sx={{
-            backgroundColor: "transparent",
+            display: "flex",
+            flexDirection: "column",
             flex: 1,
+            maxHeight: "29rem",
             minWidth: "300px",
-            maxHeight: "30rem",
-            overflow: "auto",
           }}
         >
           <Typography
@@ -1023,105 +1044,114 @@ export default function AppView() {
           >
             Pedidos Recebidos
           </Typography>
-
-          {listaDePedidos.map((pedido, index) => (
-            <Box
-              key={index}
-              sx={{
-                mt: 1,
-                border: "1px  solid #333",
-                borderRadius: "15px",
-                margin: "0.8rem",
-                overflow: "hidden",
-                boxShadow: "2px 0px 10px 1px rgba(0, 0, 0, 0.2)",
-              }}
-            >
+          <Box
+            sx={{
+              backgroundColor: "transparent",
+              flex: 1,
+              maxHeight: "30rem",
+              overflow: "auto",
+            }}
+          >
+            {listaDePedidos.map((pedido, index) => (
               <Box
+                key={index}
                 sx={{
-                  display: "flex",
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyItems: "center",
-                  width: "100%",
-                  height: "2rem",
-                  gap: "1rem",
-                  pl: 1,
+                  mt: 1,
+                  border: "1px  solid #333",
+                  borderRadius: "15px",
+                  margin: "0.8rem",
+                  overflow: "hidden",
+                  boxShadow: "2px 0px 10px 1px rgba(0, 0, 0, 0.2)",
                 }}
               >
                 <Box
                   sx={{
                     display: "flex",
+                    flexDirection: "row",
                     alignItems: "center",
-                    justifyContent: "center",
-                    backgroundColor:
-                      corPorFormaDeEntrega[pedido.DadosPessoais.formaDeEntrega],
-                    borderRadius: "15px",
-                    width: "5rem",
+                    justifyItems: "center",
+                    width: "100%",
+                    height: "2rem",
+                    gap: "1rem",
+                    pl: 1,
                   }}
                 >
-                  <Typography variant="body2" sx={{ color: "white" }}>
-                    {pedido.DadosPessoais.formaDeEntrega}
-                  </Typography>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      backgroundColor:
+                        corPorFormaDeEntrega[
+                          pedido.DadosPessoais.formaDeEntrega
+                        ],
+                      borderRadius: "15px",
+                      width: "5rem",
+                    }}
+                  >
+                    <Typography variant="body2" sx={{ color: "white" }}>
+                      {pedido.DadosPessoais.formaDeEntrega}
+                    </Typography>
+                  </Box>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      backgroundColor:
+                        corPorFormaDePagamento[
+                          pedido.DadosPessoais.formaDePagamento
+                        ],
+                      borderRadius: "15px",
+                      width: "5rem",
+                    }}
+                  >
+                    <Typography variant="body2" sx={{ color: "white" }}>
+                      {pedido.DadosPessoais.formaDePagamento}
+                    </Typography>
+                  </Box>
+                  <LocalPrintshopRoundedIcon
+                    titleAccess="Imprimir pedido"
+                    sx={{ cursor: "pointer" }}
+                    variant="outlined"
+                    onClick={() => imprimirPedido(pedido)}
+                  />
                 </Box>
+                <Typography sx={{ pl: 1, pt: 1 }}>
+                  <b>Nome :</b> {pedido.DadosPessoais.nome}
+                  <br />
+                  <b>Telefone :</b> {pedido.DadosPessoais.telefone}
+                  <br />
+                  <b>Pedido :</b> {pedido.numeroPedido}
+                </Typography>
+
                 <Box
                   sx={{
                     display: "flex",
+                    width: "100%",
                     alignItems: "center",
-                    justifyContent: "center",
-                    backgroundColor:
-                      corPorFormaDePagamento[
-                        pedido.DadosPessoais.formaDePagamento
-                      ],
-                    borderRadius: "15px",
-                    width: "5rem",
+                    justifyContent: "space-around",
+                    height: "3rem",
+                    gap: "1rem",
                   }}
                 >
-                  <Typography variant="body2" sx={{ color: "white" }}>
-                    {pedido.DadosPessoais.formaDePagamento}
-                  </Typography>
-                </Box>
-                <LocalPrintshopRoundedIcon
-                  titleAccess="Imprimir pedido"
-                  sx={{ cursor: "pointer" }}
-                  variant="outlined"
-                  onClick={() => imprimirPedido(pedido)}
-                />
-              </Box>
-              <Typography sx={{ pl: 1, pt: 1 }}>
-                <b>Nome :</b> {pedido.DadosPessoais.nome}
-                <br />
-                <b>Telefone :</b> {pedido.DadosPessoais.telefone}
-                <br />
-                <b>Pedido :</b> {pedido.numeroPedido}
-              </Typography>
+                  {pedido.itens.length > 0 && (
+                    <>
+                      <CheckCircleIcon
+                        titleAccess="aceitar pedido"
+                        className="click"
+                        sx={{
+                          cursor: "pointer",
+                          color: "green",
+                          borderRadius: "7px",
+                          "&:hover": {
+                            backgroundColor: "transparent",
+                          },
+                        }}
+                        onClick={() => prepararPedido(pedido)}
+                      />
 
-              <Box
-                sx={{
-                  display: "flex",
-                  width: "100%",
-                  alignItems: "center",
-                  justifyContent: "space-around",
-                  height: "3rem",
-                  gap: "1rem",
-                }}
-              >
-                {pedido.itens.length > 0 && (
-                  <>
-                    <CheckCircleIcon
-                      titleAccess="aceitar pedido"
-                      className="click"
-                      sx={{
-                        cursor: "pointer",
-                        color: "green",
-                        borderRadius: "7px",
-                        "&:hover": {
-                          backgroundColor: "transparent",
-                        },
-                      }}
-                      onClick={() => prepararPedido(pedido)}
-                    />
-
-                    {/*<CancelIcon
+                      {/*<CancelIcon
                       titleAccess="negar pedido"
                       className="click"
                       sx={{
@@ -1133,194 +1163,195 @@ export default function AppView() {
                       }}
                     />*/}
 
-                    <FormatListBulletedRoundedIcon
-                      titleAccess="Itens do pedido"
-                      className="click"
-                      sx={{
-                        cursor: "pointer",
-                        color: "blue",
-                        "&:hover": {
-                          backgroundColor: "transparent",
-                        },
-                      }}
-                      onClick={() =>
-                        setItensVisiveisPorPedido((prevItensVisiveis) => ({
-                          ...prevItensVisiveis,
-                          [pedido.numeroPedido]: prevItensVisiveis[
-                            pedido.numeroPedido
-                          ]
-                            ? null
-                            : pedido.itens,
-                        }))
-                      }
-                    />
-                    {pedido.DadosPessoais.formaDeEntrega == "Retirada" ? (
-                      console.log(
-                        "nao e pra mostrar o endereco pois e retirada"
-                      )
-                    ) : (
-                      <HomeIcon
-                        titleAccess="Endereço do cliente"
+                      <FormatListBulletedRoundedIcon
+                        titleAccess="Itens do pedido"
                         className="click"
                         sx={{
                           cursor: "pointer",
-                          color: "purple",
+                          color: "blue",
                           "&:hover": {
                             backgroundColor: "transparent",
                           },
                         }}
                         onClick={() =>
-                          toggleEnderecoVisivel(pedido.numeroPedido)
+                          setItensVisiveisPorPedido((prevItensVisiveis) => ({
+                            ...prevItensVisiveis,
+                            [pedido.numeroPedido]: prevItensVisiveis[
+                              pedido.numeroPedido
+                            ]
+                              ? null
+                              : pedido.itens,
+                          }))
                         }
                       />
-                    )}
-                  </>
-                )}
-              </Box>
-
-              {itensVisiveisPorPedido[pedido.numeroPedido] === pedido.itens &&
-                pedido.itens.length > 0 && (
-                  <Box>
-                    {pedido.DadosPessoais &&
-                      pedido.itens.map((item, itemIndex) => (
-                        <Typography
-                          key={itemIndex}
-                          style={{
-                            paddingLeft: "8px",
-                            borderTop: "1px solid black",
+                      {pedido.DadosPessoais.formaDeEntrega == "Retirada" ? (
+                        console.log(
+                          "nao e pra mostrar o endereco pois e retirada"
+                        )
+                      ) : (
+                        <HomeIcon
+                          titleAccess="Endereço do cliente"
+                          className="click"
+                          sx={{
+                            cursor: "pointer",
+                            color: "purple",
+                            "&:hover": {
+                              backgroundColor: "transparent",
+                            },
                           }}
-                        >
-                          <b>Item:</b> {item.sabor}
-                          <br />
-                          <b>Quantidade:</b> {item.quantidade}
-                          <br />
-                          {item.valorOpcional === 0 ||
-                          item.valorOpcional === "0" ||
-                          item.valorOpcional === "" ? (
-                            <>
-                              <b>Opcional:</b>
-                              {item.opcionalSelecionado}
-                              <br />
-                              <b>Valor opcional:</b>Grátis
-                            </>
-                          ) : (
-                            <>
-                              {item.opcionais == 0 ? (
-                                console.log("escolheu bebida")
-                              ) : (
-                                <>
-                                  {" "}
-                                  <b>Opcional:</b>
-                                  {item.opcionalSelecionado}
-                                  <br />
-                                  <b>Valor opcional:</b>
-                                  R$ {item.valorOpcional}
-                                </>
-                              )}
-                            </>
-                          )}
-                          {item.observacao === "" ? (
-                            console.log("nao tem observacao")
-                          ) : (
-                            <>
-                              <br />
-                              <b>Observação:</b>
-                              {item.observacao}
-                            </>
-                          )}
-                          {item.opcionais == 0 ? (
-                            console.log("nao precisa de espaco se forbebida")
-                          ) : (
+                          onClick={() =>
+                            toggleEnderecoVisivel(pedido.numeroPedido)
+                          }
+                        />
+                      )}
+                    </>
+                  )}
+                </Box>
+
+                {itensVisiveisPorPedido[pedido.numeroPedido] === pedido.itens &&
+                  pedido.itens.length > 0 && (
+                    <Box>
+                      {pedido.DadosPessoais &&
+                        pedido.itens.map((item, itemIndex) => (
+                          <Typography
+                            key={itemIndex}
+                            style={{
+                              paddingLeft: "8px",
+                              borderTop: "1px solid black",
+                            }}
+                          >
+                            <b>Item:</b> {item.sabor}
                             <br />
-                          )}
-                          {item.adicionais.length === 0 ? (
-                            console.log("não tem adicionais")
-                          ) : (
-                            <>
-                              <b>Adicionais:</b>
+                            <b>Quantidade:</b> {item.quantidade}
+                            <br />
+                            {item.valorOpcional === 0 ||
+                            item.valorOpcional === "0" ||
+                            item.valorOpcional === "" ? (
+                              <>
+                                <b>Opcional:</b>
+                                {item.opcionalSelecionado}
+                                <br />
+                                <b>Valor opcional:</b>Grátis
+                              </>
+                            ) : (
+                              <>
+                                {item.opcionais == 0 ? (
+                                  console.log("escolheu bebida")
+                                ) : (
+                                  <>
+                                    {" "}
+                                    <b>Opcional:</b>
+                                    {item.opcionalSelecionado}
+                                    <br />
+                                    <b>Valor opcional:</b>
+                                    R$ {item.valorOpcional}
+                                  </>
+                                )}
+                              </>
+                            )}
+                            {item.observacao === "" ? (
+                              console.log("nao tem observacao")
+                            ) : (
+                              <>
+                                <br />
+                                <b>Observação:</b>
+                                {item.observacao}
+                              </>
+                            )}
+                            {item.opcionais == 0 ? (
+                              console.log("nao precisa de espaco se forbebida")
+                            ) : (
                               <br />
-                              {item.adicionais.map((adicional, index) => (
-                                <div key={index}>
-                                  <p>
-                                    {adicional.name}-({adicional.qtde}x)
-                                  </p>
-                                </div>
-                              ))}
-                              <b>Valor Total de adicionais</b>: R${" "}
-                              {item.valorTotalAdicionais.toFixed(2)}
-                              <br />
-                            </>
-                          )}
-                          <b>Valor Do Item:</b> R$ {item.valorTotalDoProduto}
-                          <br />
-                        </Typography>
-                      ))}
-                    <Typography
-                      style={{
-                        backgroundColor: "green",
-                        paddingLeft: "8px",
-                        borderTop: "1px solid black",
-                        color: "white",
-                      }}
-                    >
-                      Valor Total do pedido: R${" "}
-                      {calcularSomaTotal(pedido.itens).toFixed(2)}
-                    </Typography>
-                    {pedido.DadosPessoais.troco === 0 ||
-                    pedido.DadosPessoais.troco === null ||
-                    pedido.DadosPessoais.troco === undefined ||
-                    pedido.DadosPessoais.troco === "0" ? (
-                      console.log("nao precisou de troco/ta trocado")
-                    ) : (
+                            )}
+                            {item.adicionais.length === 0 ? (
+                              console.log("não tem adicionais")
+                            ) : (
+                              <>
+                                <b>Adicionais:</b>
+                                <br />
+                                {item.adicionais.map((adicional, index) => (
+                                  <div key={index}>
+                                    <p>
+                                      {adicional.name}-({adicional.qtde}x)
+                                    </p>
+                                  </div>
+                                ))}
+                                <b>Valor Total de adicionais</b>: R${" "}
+                                {item.valorTotalAdicionais.toFixed(2)}
+                                <br />
+                              </>
+                            )}
+                            <b>Valor Do Item:</b> R$ {item.valorTotalDoProduto}
+                            <br />
+                          </Typography>
+                        ))}
                       <Typography
                         style={{
-                          backgroundColor: "blue",
+                          backgroundColor: "green",
                           paddingLeft: "8px",
                           borderTop: "1px solid black",
                           color: "white",
                         }}
                       >
-                        Troco para:{pedido.DadosPessoais.troco}
+                        Valor Total do pedido: R${" "}
+                        {calcularSomaTotal(pedido.itens).toFixed(2)}
                       </Typography>
-                    )}
-                  </Box>
-                )}
+                      {pedido.DadosPessoais.troco === 0 ||
+                      pedido.DadosPessoais.troco === null ||
+                      pedido.DadosPessoais.troco === undefined ||
+                      pedido.DadosPessoais.troco === "0" ? (
+                        console.log("nao precisou de troco/ta trocado")
+                      ) : (
+                        <Typography
+                          style={{
+                            backgroundColor: "blue",
+                            paddingLeft: "8px",
+                            borderTop: "1px solid black",
+                            color: "white",
+                          }}
+                        >
+                          Troco para:{pedido.DadosPessoais.troco}
+                        </Typography>
+                      )}
+                    </Box>
+                  )}
 
-              {enderecoVisivelPorPedido[pedido.numeroPedido] && (
-                <Typography
-                  style={{
-                    paddingLeft: "8px",
-                    borderTop: "1px solid black",
-                  }}
-                >
-                  <b>Endereço :</b>
-                  <br />
-                  Rua: {pedido.DadosPessoais.endereco.rua}
-                  <br />
-                  Bairro: {pedido.DadosPessoais.endereco.bairro}
-                  <br />
-                  Casa/Apto: {pedido.DadosPessoais.endereco.casaApto}
-                  <br />
-                  CEP: {pedido.DadosPessoais.endereco.cep}
-                  <br />
-                  Cidade: {pedido.DadosPessoais.endereco.cidade}
-                  <br />
-                  Complemento: {pedido.DadosPessoais.endereco.complemento}
-                  <br />
-                  Estado: {pedido.DadosPessoais.endereco.estado}
-                </Typography>
-              )}
-            </Box>
-          ))}
+                {enderecoVisivelPorPedido[pedido.numeroPedido] && (
+                  <Typography
+                    style={{
+                      paddingLeft: "8px",
+                      borderTop: "1px solid black",
+                    }}
+                  >
+                    <b>Endereço :</b>
+                    <br />
+                    Rua: {pedido.DadosPessoais.endereco.rua}
+                    <br />
+                    Bairro: {pedido.DadosPessoais.endereco.bairro}
+                    <br />
+                    Casa/Apto: {pedido.DadosPessoais.endereco.casaApto}
+                    <br />
+                    CEP: {pedido.DadosPessoais.endereco.cep}
+                    <br />
+                    Cidade: {pedido.DadosPessoais.endereco.cidade}
+                    <br />
+                    Complemento: {pedido.DadosPessoais.endereco.complemento}
+                    <br />
+                    Estado: {pedido.DadosPessoais.endereco.estado}
+                  </Typography>
+                )}
+              </Box>
+            ))}
+          </Box>
         </Box>
 
         <Box
           sx={{
-            backgroundColor: "transparent",
+            display: "flex",
+            flexDirection: "column",
             flex: 1,
+            maxHeight: "29rem",
             minWidth: "300px",
-            maxHeight: "30rem",
-            overflow: "auto",
           }}
         >
           <Typography
@@ -1337,108 +1368,115 @@ export default function AppView() {
           >
             Pedidos Em Preparo
           </Typography>
-
-          {pedidoEmPreparo.map((pedidoEmPreparo, index) => (
-            <Box
-              key={index}
-              sx={{
-                mt: 1,
-                border: "1px  solid #333",
-                borderRadius: "15px",
-                margin: "0.8rem",
-                overflow: "hidden",
-                boxShadow: "2px 0px 10px 1px rgba(0, 0, 0, 0.2)",
-              }}
-            >
+          <Box
+            sx={{
+              backgroundColor: "transparent",
+              flex: 1,
+              maxHeight: "30rem",
+              overflow: "auto",
+            }}
+          >
+            {pedidoEmPreparo.map((pedidoEmPreparo, index) => (
               <Box
+                key={index}
                 sx={{
-                  display: "flex",
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyItems: "center",
-                  width: "100%",
-                  height: "2rem",
-                  gap: "1rem",
-                  pl: 1,
+                  mt: 1,
+                  border: "1px  solid #333",
+                  borderRadius: "15px",
+                  margin: "0.8rem",
+                  overflow: "hidden",
+                  boxShadow: "2px 0px 10px 1px rgba(0, 0, 0, 0.2)",
                 }}
               >
                 <Box
                   sx={{
                     display: "flex",
+                    flexDirection: "row",
                     alignItems: "center",
-                    justifyContent: "center",
-                    backgroundColor:
-                      corPorFormaDeEntrega[
-                        pedidoEmPreparo.DadosPessoais.formaDeEntrega
-                      ],
-                    borderRadius: "15px",
-                    width: "5rem",
+                    justifyItems: "center",
+                    width: "100%",
+                    height: "2rem",
+                    gap: "1rem",
+                    pl: 1,
                   }}
                 >
-                  <Typography variant="body2" sx={{ color: "white" }}>
-                    {pedidoEmPreparo.DadosPessoais.formaDeEntrega}
-                  </Typography>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      backgroundColor:
+                        corPorFormaDeEntrega[
+                          pedidoEmPreparo.DadosPessoais.formaDeEntrega
+                        ],
+                      borderRadius: "15px",
+                      width: "5rem",
+                    }}
+                  >
+                    <Typography variant="body2" sx={{ color: "white" }}>
+                      {pedidoEmPreparo.DadosPessoais.formaDeEntrega}
+                    </Typography>
+                  </Box>
+
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      backgroundColor:
+                        corPorFormaDePagamento[
+                          pedidoEmPreparo.DadosPessoais.formaDePagamento
+                        ],
+                      borderRadius: "15px",
+                      width: "5rem",
+                    }}
+                  >
+                    <Typography variant="body2" sx={{ color: "white" }}>
+                      {pedidoEmPreparo.DadosPessoais.formaDePagamento}
+                    </Typography>
+                  </Box>
+                  <LocalPrintshopRoundedIcon
+                    titleAccess="Imprimir pedido"
+                    sx={{ cursor: "pointer" }}
+                    variant="outlined"
+                    onClick={() => imprimirPedido(pedidoEmPreparo)}
+                  />
                 </Box>
+                <Typography sx={{ pl: 1, pt: 1 }}>
+                  <b>Nome :</b> {pedidoEmPreparo.DadosPessoais.nome}
+                  <br />
+                  <b>Telefone :</b> {pedidoEmPreparo.DadosPessoais.telefone}
+                  <br />
+                  <b>Pedido :</b> {pedidoEmPreparo.numeroPedido}
+                </Typography>
 
                 <Box
                   sx={{
                     display: "flex",
+                    width: "100%",
                     alignItems: "center",
-                    justifyContent: "center",
-                    backgroundColor:
-                      corPorFormaDePagamento[
-                        pedidoEmPreparo.DadosPessoais.formaDePagamento
-                      ],
-                    borderRadius: "15px",
-                    width: "5rem",
+                    justifyContent: "space-around",
+                    height: "3rem",
+                    gap: "1rem",
                   }}
                 >
-                  <Typography variant="body2" sx={{ color: "white" }}>
-                    {pedidoEmPreparo.DadosPessoais.formaDePagamento}
-                  </Typography>
-                </Box>
-                <LocalPrintshopRoundedIcon
-                  titleAccess="Imprimir pedido"
-                  sx={{ cursor: "pointer" }}
-                  variant="outlined"
-                  onClick={() => imprimirPedido(pedidoEmPreparo)}
-                />
-              </Box>
-              <Typography sx={{ pl: 1, pt: 1 }}>
-                <b>Nome :</b> {pedidoEmPreparo.DadosPessoais.nome}
-                <br />
-                <b>Telefone :</b> {pedidoEmPreparo.DadosPessoais.telefone}
-                <br />
-                <b>Pedido :</b> {pedidoEmPreparo.numeroPedido}
-              </Typography>
+                  {pedidoEmPreparo.itens.length > 0 && (
+                    <>
+                      <CheckCircleIcon
+                        titleAccess="Finalizar pedido"
+                        className="click"
+                        sx={{
+                          cursor: "pointer",
+                          color: "green",
+                          borderRadius: "7px",
+                          "&:hover": {
+                            backgroundColor: "transparent",
+                          },
+                        }}
+                        onClick={() => pedidoPronto(pedidoEmPreparo)}
+                      />
 
-              <Box
-                sx={{
-                  display: "flex",
-                  width: "100%",
-                  alignItems: "center",
-                  justifyContent: "space-around",
-                  height: "3rem",
-                  gap: "1rem",
-                }}
-              >
-                {pedidoEmPreparo.itens.length > 0 && (
-                  <>
-                    <CheckCircleIcon
-                      titleAccess="Finalizar pedido"
-                      className="click"
-                      sx={{
-                        cursor: "pointer",
-                        color: "green",
-                        borderRadius: "7px",
-                        "&:hover": {
-                          backgroundColor: "transparent",
-                        },
-                      }}
-                      onClick={() => pedidoPronto(pedidoEmPreparo)}
-                    />
-
-                    {/*<CancelIcon
+                      {/*<CancelIcon
                       titleAccess="negar pedido"
                       className="click"
                       sx={{
@@ -1450,198 +1488,199 @@ export default function AppView() {
                       }}
                     />*/}
 
-                    <FormatListBulletedRoundedIcon
-                      titleAccess="Itens do pedido"
-                      className="click"
-                      sx={{
-                        cursor: "pointer",
-                        color: "blue",
-                        "&:hover": {
-                          backgroundColor: "transparent",
-                        },
-                      }}
-                      onClick={() =>
-                        setItensVisiveisPorPedido((prevItensVisiveis) => ({
-                          ...prevItensVisiveis,
-                          [pedidoEmPreparo.numeroPedido]: prevItensVisiveis[
-                            pedidoEmPreparo.numeroPedido
-                          ]
-                            ? null
-                            : pedidoEmPreparo.itens,
-                        }))
-                      }
-                    />
-
-                    {pedidoEmPreparo.DadosPessoais.formaDeEntrega ==
-                    "Retirada" ? (
-                      console.log(
-                        "nao e pra mostrar o endereco pois e retirada"
-                      )
-                    ) : (
-                      <HomeIcon
-                        titleAccess="Endereço do cliente"
+                      <FormatListBulletedRoundedIcon
+                        titleAccess="Itens do pedido"
                         className="click"
                         sx={{
                           cursor: "pointer",
-                          color: "purple",
+                          color: "blue",
                           "&:hover": {
                             backgroundColor: "transparent",
                           },
                         }}
                         onClick={() =>
-                          toggleEnderecoVisivel(pedidoEmPreparo.numeroPedido)
+                          setItensVisiveisPorPedido((prevItensVisiveis) => ({
+                            ...prevItensVisiveis,
+                            [pedidoEmPreparo.numeroPedido]: prevItensVisiveis[
+                              pedidoEmPreparo.numeroPedido
+                            ]
+                              ? null
+                              : pedidoEmPreparo.itens,
+                          }))
                         }
                       />
-                    )}
-                  </>
-                )}
-              </Box>
 
-              {itensVisiveisPorPedido[pedidoEmPreparo.numeroPedido] ===
-                pedidoEmPreparo.itens &&
-                pedidoEmPreparo.itens.length > 0 && (
-                  <Box>
-                    {pedidoEmPreparo.DadosPessoais &&
-                      pedidoEmPreparo.itens.map((item, itemIndex) => (
-                        <Typography
-                          key={itemIndex}
-                          style={{
-                            paddingLeft: "8px",
-                            borderTop: "1px solid black",
+                      {pedidoEmPreparo.DadosPessoais.formaDeEntrega ==
+                      "Retirada" ? (
+                        console.log(
+                          "nao e pra mostrar o endereco pois e retirada"
+                        )
+                      ) : (
+                        <HomeIcon
+                          titleAccess="Endereço do cliente"
+                          className="click"
+                          sx={{
+                            cursor: "pointer",
+                            color: "purple",
+                            "&:hover": {
+                              backgroundColor: "transparent",
+                            },
                           }}
-                        >
-                          <b>Item:</b> {item.sabor}
-                          <br />
-                          <b>Quantidade:</b> {item.quantidade}
-                          <br />
-                          {item.valorOpcional === 0 ||
-                          item.valorOpcional === "0" ||
-                          item.valorOpcional === "" ? (
-                            <>
-                              <b>Opcional:</b>
-                              {item.opcionalSelecionado}
-                              <br />
-                              <b>Valor opcional:</b>Grátis
-                            </>
-                          ) : (
-                            <>
-                              {item.opcionais == 0 ? (
-                                console.log("escolheu bebida")
-                              ) : (
-                                <>
-                                  {" "}
-                                  <b>Opcional:</b>
-                                  {item.opcionalSelecionado}
-                                  <br />
-                                  <b>Valor opcional:</b>
-                                  R$ {item.valorOpcional}
-                                </>
-                              )}
-                            </>
-                          )}
-                          {item.observacao === "" ? (
-                            console.log("nao tem observacao")
-                          ) : (
-                            <>
-                              <br />
-                              <b>Observação:</b>
-                              {item.observacao}
-                            </>
-                          )}
-                          {item.opcionais == 0 ? (
-                            console.log("nao precisa de espaco se forbebida")
-                          ) : (
+                          onClick={() =>
+                            toggleEnderecoVisivel(pedidoEmPreparo.numeroPedido)
+                          }
+                        />
+                      )}
+                    </>
+                  )}
+                </Box>
+
+                {itensVisiveisPorPedido[pedidoEmPreparo.numeroPedido] ===
+                  pedidoEmPreparo.itens &&
+                  pedidoEmPreparo.itens.length > 0 && (
+                    <Box>
+                      {pedidoEmPreparo.DadosPessoais &&
+                        pedidoEmPreparo.itens.map((item, itemIndex) => (
+                          <Typography
+                            key={itemIndex}
+                            style={{
+                              paddingLeft: "8px",
+                              borderTop: "1px solid black",
+                            }}
+                          >
+                            <b>Item:</b> {item.sabor}
                             <br />
-                          )}
-                          {item.adicionais.length === 0 ? (
-                            console.log("não tem adicionais")
-                          ) : (
-                            <>
-                              <b>Adicionais:</b>
+                            <b>Quantidade:</b> {item.quantidade}
+                            <br />
+                            {item.valorOpcional === 0 ||
+                            item.valorOpcional === "0" ||
+                            item.valorOpcional === "" ? (
+                              <>
+                                <b>Opcional:</b>
+                                {item.opcionalSelecionado}
+                                <br />
+                                <b>Valor opcional:</b>Grátis
+                              </>
+                            ) : (
+                              <>
+                                {item.opcionais == 0 ? (
+                                  console.log("escolheu bebida")
+                                ) : (
+                                  <>
+                                    {" "}
+                                    <b>Opcional:</b>
+                                    {item.opcionalSelecionado}
+                                    <br />
+                                    <b>Valor opcional:</b>
+                                    R$ {item.valorOpcional}
+                                  </>
+                                )}
+                              </>
+                            )}
+                            {item.observacao === "" ? (
+                              console.log("nao tem observacao")
+                            ) : (
+                              <>
+                                <br />
+                                <b>Observação:</b>
+                                {item.observacao}
+                              </>
+                            )}
+                            {item.opcionais == 0 ? (
+                              console.log("nao precisa de espaco se forbebida")
+                            ) : (
                               <br />
-                              {item.adicionais.map((adicional, index) => (
-                                <div key={index}>
-                                  <p>
-                                    {adicional.name}-({adicional.qtde}x)
-                                  </p>
-                                </div>
-                              ))}
-                              <b>Valor Total de adicionais</b>: R${" "}
-                              {item.valorTotalAdicionais.toFixed(2)}
-                              <br />
-                            </>
-                          )}
-                          <b>Valor Do Item:</b> R$ {item.valorTotalDoProduto}
-                          <br />
-                        </Typography>
-                      ))}
-                    <Typography
-                      style={{
-                        backgroundColor: "green",
-                        paddingLeft: "8px",
-                        borderTop: "1px solid black",
-                        color: "white",
-                      }}
-                    >
-                      Valor Total do pedido: R${" "}
-                      {calcularSomaTotal(pedidoEmPreparo.itens).toFixed(2)}
-                    </Typography>
-                    {pedidoEmPreparo.DadosPessoais.troco === 0 ||
-                    pedidoEmPreparo.DadosPessoais.troco === null ||
-                    pedidoEmPreparo.DadosPessoais.troco === undefined ||
-                    pedidoEmPreparo.DadosPessoais.troco === "0" ? (
-                      console.log("nao precisou de troco/ta trocado")
-                    ) : (
+                            )}
+                            {item.adicionais.length === 0 ? (
+                              console.log("não tem adicionais")
+                            ) : (
+                              <>
+                                <b>Adicionais:</b>
+                                <br />
+                                {item.adicionais.map((adicional, index) => (
+                                  <div key={index}>
+                                    <p>
+                                      {adicional.name}-({adicional.qtde}x)
+                                    </p>
+                                  </div>
+                                ))}
+                                <b>Valor Total de adicionais</b>: R${" "}
+                                {item.valorTotalAdicionais.toFixed(2)}
+                                <br />
+                              </>
+                            )}
+                            <b>Valor Do Item:</b> R$ {item.valorTotalDoProduto}
+                            <br />
+                          </Typography>
+                        ))}
                       <Typography
                         style={{
-                          backgroundColor: "blue",
+                          backgroundColor: "green",
                           paddingLeft: "8px",
                           borderTop: "1px solid black",
                           color: "white",
                         }}
                       >
-                        Troco para:{pedidoEmPreparo.DadosPessoais.troco}
+                        Valor Total do pedido: R${" "}
+                        {calcularSomaTotal(pedidoEmPreparo.itens).toFixed(2)}
                       </Typography>
-                    )}
-                  </Box>
-                )}
+                      {pedidoEmPreparo.DadosPessoais.troco === 0 ||
+                      pedidoEmPreparo.DadosPessoais.troco === null ||
+                      pedidoEmPreparo.DadosPessoais.troco === undefined ||
+                      pedidoEmPreparo.DadosPessoais.troco === "0" ? (
+                        console.log("nao precisou de troco/ta trocado")
+                      ) : (
+                        <Typography
+                          style={{
+                            backgroundColor: "blue",
+                            paddingLeft: "8px",
+                            borderTop: "1px solid black",
+                            color: "white",
+                          }}
+                        >
+                          Troco para:{pedidoEmPreparo.DadosPessoais.troco}
+                        </Typography>
+                      )}
+                    </Box>
+                  )}
 
-              {enderecoVisivelPorPedido[pedidoEmPreparo.numeroPedido] && (
-                <Typography
-                  style={{
-                    paddingLeft: "8px",
-                    borderTop: "1px solid black",
-                  }}
-                >
-                  <b>Endereço :</b>
-                  <br />
-                  Rua: {pedidoEmPreparo.DadosPessoais.endereco.rua}
-                  <br />
-                  Bairro: {pedidoEmPreparo.DadosPessoais.endereco.bairro}
-                  <br />
-                  Casa/Apto: {pedidoEmPreparo.DadosPessoais.endereco.casaApto}
-                  <br />
-                  CEP: {pedidoEmPreparo.DadosPessoais.endereco.cep}
-                  <br />
-                  Cidade: {pedidoEmPreparo.DadosPessoais.endereco.cidade}
-                  <br />
-                  Complemento:{" "}
-                  {pedidoEmPreparo.DadosPessoais.endereco.complemento}
-                  <br />
-                  Estado: {pedidoEmPreparo.DadosPessoais.endereco.estado}
-                </Typography>
-              )}
-            </Box>
-          ))}
+                {enderecoVisivelPorPedido[pedidoEmPreparo.numeroPedido] && (
+                  <Typography
+                    style={{
+                      paddingLeft: "8px",
+                      borderTop: "1px solid black",
+                    }}
+                  >
+                    <b>Endereço :</b>
+                    <br />
+                    Rua: {pedidoEmPreparo.DadosPessoais.endereco.rua}
+                    <br />
+                    Bairro: {pedidoEmPreparo.DadosPessoais.endereco.bairro}
+                    <br />
+                    Casa/Apto: {pedidoEmPreparo.DadosPessoais.endereco.casaApto}
+                    <br />
+                    CEP: {pedidoEmPreparo.DadosPessoais.endereco.cep}
+                    <br />
+                    Cidade: {pedidoEmPreparo.DadosPessoais.endereco.cidade}
+                    <br />
+                    Complemento:{" "}
+                    {pedidoEmPreparo.DadosPessoais.endereco.complemento}
+                    <br />
+                    Estado: {pedidoEmPreparo.DadosPessoais.endereco.estado}
+                  </Typography>
+                )}
+              </Box>
+            ))}
+          </Box>
         </Box>
 
         <Box
           sx={{
-            backgroundColor: "transparent",
+            display: "flex",
+            flexDirection: "column",
             flex: 1,
+            maxHeight: "29rem",
             minWidth: "300px",
-            maxHeight: "30rem",
-            overflow: "auto",
           }}
         >
           <Typography
@@ -1656,111 +1695,118 @@ export default function AppView() {
               mt: 1,
             }}
           >
-            Esperando Entregador
+            Esperando entregador/Retirada
           </Typography>
-
-          {pedidoFinalizado.map((pedidoFinalizado, index) => (
-            <Box
-              key={index}
-              sx={{
-                mt: 1,
-                border: "1px  solid #333",
-                borderRadius: "15px",
-                margin: "0.8rem",
-                overflow: "hidden",
-                boxShadow: "2px 0px 10px 1px rgba(0, 0, 0, 0.2)",
-              }}
-            >
+          <Box
+            sx={{
+              backgroundColor: "transparent",
+              flex: 1,
+              maxHeight: "30rem",
+              overflow: "auto",
+            }}
+          >
+            {pedidoFinalizado.map((pedidoFinalizado, index) => (
               <Box
+                key={index}
                 sx={{
-                  display: "flex",
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyItems: "center",
-                  width: "100%",
-                  height: "2rem",
-                  gap: "1rem",
-                  pl: 1,
+                  mt: 1,
+                  border: "1px  solid #333",
+                  borderRadius: "15px",
+                  margin: "0.8rem",
+                  overflow: "hidden",
+                  boxShadow: "2px 0px 10px 1px rgba(0, 0, 0, 0.2)",
                 }}
               >
                 <Box
                   sx={{
                     display: "flex",
+                    flexDirection: "row",
                     alignItems: "center",
-                    justifyContent: "center",
-                    backgroundColor:
-                      corPorFormaDeEntrega[
-                        pedidoFinalizado.DadosPessoais.formaDeEntrega
-                      ],
-                    borderRadius: "15px",
-                    width: "5rem",
+                    justifyItems: "center",
+                    width: "100%",
+                    height: "2rem",
+                    gap: "1rem",
+                    pl: 1,
                   }}
                 >
-                  <Typography variant="body2" sx={{ color: "white" }}>
-                    {pedidoFinalizado.DadosPessoais.formaDeEntrega}
-                  </Typography>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      backgroundColor:
+                        corPorFormaDeEntrega[
+                          pedidoFinalizado.DadosPessoais.formaDeEntrega
+                        ],
+                      borderRadius: "15px",
+                      width: "5rem",
+                    }}
+                  >
+                    <Typography variant="body2" sx={{ color: "white" }}>
+                      {pedidoFinalizado.DadosPessoais.formaDeEntrega}
+                    </Typography>
+                  </Box>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      backgroundColor:
+                        corPorFormaDePagamento[
+                          pedidoFinalizado.DadosPessoais.formaDePagamento
+                        ],
+                      borderRadius: "15px",
+                      width: "5rem",
+                    }}
+                  >
+                    <Typography variant="body2" sx={{ color: "white" }}>
+                      {pedidoFinalizado.DadosPessoais.formaDePagamento}
+                    </Typography>
+                  </Box>
+                  <LocalPrintshopRoundedIcon
+                    titleAccess="Imprimir pedido"
+                    sx={{ cursor: "pointer" }}
+                    variant="outlined"
+                    onClick={() => imprimirPedido(pedidoFinalizado)}
+                  />
                 </Box>
+                <Typography sx={{ pl: 1, pt: 1 }}>
+                  <b>Nome :</b> {pedidoFinalizado.DadosPessoais.nome}
+                  <br />
+                  <b>Telefone :</b> {pedidoFinalizado.DadosPessoais.telefone}
+                  <br />
+                  <b>Pedido :</b> {pedidoFinalizado.numeroPedido}
+                </Typography>
+
                 <Box
                   sx={{
                     display: "flex",
+                    width: "100%",
                     alignItems: "center",
-                    justifyContent: "center",
-                    backgroundColor:
-                      corPorFormaDePagamento[
-                        pedidoFinalizado.DadosPessoais.formaDePagamento
-                      ],
-                    borderRadius: "15px",
-                    width: "5rem",
+                    justifyContent: "space-around",
+                    height: "3rem",
+                    gap: "1rem",
                   }}
                 >
-                  <Typography variant="body2" sx={{ color: "white" }}>
-                    {pedidoFinalizado.DadosPessoais.formaDePagamento}
-                  </Typography>
-                </Box>
-                <LocalPrintshopRoundedIcon
-                  titleAccess="Imprimir pedido"
-                  sx={{ cursor: "pointer" }}
-                  variant="outlined"
-                  onClick={() => imprimirPedido(pedidoFinalizado)}
-                />
-              </Box>
-              <Typography sx={{ pl: 1, pt: 1 }}>
-                <b>Nome :</b> {pedidoFinalizado.DadosPessoais.nome}
-                <br />
-                <b>Telefone :</b> {pedidoFinalizado.DadosPessoais.telefone}
-                <br />
-                <b>Pedido :</b> {pedidoFinalizado.numeroPedido}
-              </Typography>
+                  {pedidoFinalizado.itens.length > 0 && (
+                    <>
+                      <CheckCircleIcon
+                        titleAccess="Enviar pedido"
+                        className="click"
+                        sx={{
+                          cursor: "pointer",
+                          color: "green",
+                          borderRadius: "7px",
+                          "&:hover": {
+                            backgroundColor: "transparent",
+                          },
+                        }}
+                        onClick={() =>
+                          moverParaPedidosEntregues(pedidoFinalizado)
+                        }
+                      />
 
-              <Box
-                sx={{
-                  display: "flex",
-                  width: "100%",
-                  alignItems: "center",
-                  justifyContent: "space-around",
-                  height: "3rem",
-                  gap: "1rem",
-                }}
-              >
-                {pedidoFinalizado.itens.length > 0 && (
-                  <>
-                    <CheckCircleIcon
-                      titleAccess="Enviar pedido"
-                      className="click"
-                      sx={{
-                        cursor: "pointer",
-                        color: "green",
-                        borderRadius: "7px",
-                        "&:hover": {
-                          backgroundColor: "transparent",
-                        },
-                      }}
-                      onClick={() =>
-                        moverParaPedidosEntregues(pedidoFinalizado)
-                      }
-                    />
-
-                    {/*<CancelIcon
+                      {/*<CancelIcon
                       titleAccess="negar pedido"
                       className="click"
                       sx={{
@@ -1772,189 +1818,191 @@ export default function AppView() {
                       }}
                     />*/}
 
-                    <FormatListBulletedRoundedIcon
-                      titleAccess="Itens do pedido"
-                      className="click"
-                      sx={{
-                        cursor: "pointer",
-                        color: "blue",
-                        "&:hover": {
-                          backgroundColor: "transparent",
-                        },
-                      }}
-                      onClick={() =>
-                        setItensVisiveisPorPedido((prevItensVisiveis) => ({
-                          ...prevItensVisiveis,
-                          [pedidoFinalizado.numeroPedido]: prevItensVisiveis[
-                            pedidoFinalizado.numeroPedido
-                          ]
-                            ? null
-                            : pedidoFinalizado.itens,
-                        }))
-                      }
-                    />
-
-                    {pedidoFinalizado.DadosPessoais.formaDeEntrega ==
-                    "Retirada" ? (
-                      console.log(
-                        "nao e pra mostrar o endereco pois e retirada"
-                      )
-                    ) : (
-                      <HomeIcon
-                        titleAccess="Endereço do cliente"
+                      <FormatListBulletedRoundedIcon
+                        titleAccess="Itens do pedido"
                         className="click"
                         sx={{
                           cursor: "pointer",
-                          color: "purple",
+                          color: "blue",
                           "&:hover": {
                             backgroundColor: "transparent",
                           },
                         }}
                         onClick={() =>
-                          toggleEnderecoVisivel(pedidoFinalizado.numeroPedido)
+                          setItensVisiveisPorPedido((prevItensVisiveis) => ({
+                            ...prevItensVisiveis,
+                            [pedidoFinalizado.numeroPedido]: prevItensVisiveis[
+                              pedidoFinalizado.numeroPedido
+                            ]
+                              ? null
+                              : pedidoFinalizado.itens,
+                          }))
                         }
                       />
-                    )}
-                  </>
-                )}
-              </Box>
 
-              {itensVisiveisPorPedido[pedidoFinalizado.numeroPedido] ===
-                pedidoFinalizado.itens &&
-                pedidoFinalizado.itens.length > 0 && (
-                  <Box>
-                    {pedidoFinalizado.DadosPessoais &&
-                      pedidoFinalizado.itens.map((item, itemIndex) => (
-                        <Typography
-                          key={itemIndex}
-                          style={{
-                            paddingLeft: "8px",
-                            borderTop: "1px solid black",
+                      {pedidoFinalizado.DadosPessoais.formaDeEntrega ==
+                      "Retirada" ? (
+                        console.log(
+                          "nao e pra mostrar o endereco pois e retirada"
+                        )
+                      ) : (
+                        <HomeIcon
+                          titleAccess="Endereço do cliente"
+                          className="click"
+                          sx={{
+                            cursor: "pointer",
+                            color: "purple",
+                            "&:hover": {
+                              backgroundColor: "transparent",
+                            },
                           }}
-                        >
-                          <b>Item:</b> {item.sabor}
-                          <br />
-                          <b>Quantidade:</b> {item.quantidade}
-                          <br />
-                          {item.valorOpcional === 0 ||
-                          item.valorOpcional === "0" ||
-                          item.valorOpcional === "" ? (
-                            <>
-                              <b>Opcional:</b>
-                              {item.opcionalSelecionado}
-                              <br />
-                              <b>Valor opcional:</b>Grátis
-                            </>
-                          ) : (
-                            <>
-                              {item.opcionais == 0 ? (
-                                console.log("escolheu bebida")
-                              ) : (
-                                <>
-                                  {" "}
-                                  <b>Opcional:</b>
-                                  {item.opcionalSelecionado}
-                                  <br />
-                                  <b>Valor opcional:</b>
-                                  R$ {item.valorOpcional}
-                                </>
-                              )}
-                            </>
-                          )}
-                          {item.observacao === "" ? (
-                            console.log("nao tem observacao")
-                          ) : (
-                            <>
-                              <br />
-                              <b>Observação:</b>
-                              {item.observacao}
-                            </>
-                          )}
-                          {item.opcionais == 0 ? (
-                            console.log("nao precisa de espaco se forbebida")
-                          ) : (
+                          onClick={() =>
+                            toggleEnderecoVisivel(pedidoFinalizado.numeroPedido)
+                          }
+                        />
+                      )}
+                    </>
+                  )}
+                </Box>
+
+                {itensVisiveisPorPedido[pedidoFinalizado.numeroPedido] ===
+                  pedidoFinalizado.itens &&
+                  pedidoFinalizado.itens.length > 0 && (
+                    <Box>
+                      {pedidoFinalizado.DadosPessoais &&
+                        pedidoFinalizado.itens.map((item, itemIndex) => (
+                          <Typography
+                            key={itemIndex}
+                            style={{
+                              paddingLeft: "8px",
+                              borderTop: "1px solid black",
+                            }}
+                          >
+                            <b>Item:</b> {item.sabor}
                             <br />
-                          )}
-                          {item.adicionais.length === 0 ? (
-                            console.log("não tem adicionais")
-                          ) : (
-                            <>
-                              <b>Adicionais:</b>
+                            <b>Quantidade:</b> {item.quantidade}
+                            <br />
+                            {item.valorOpcional === 0 ||
+                            item.valorOpcional === "0" ||
+                            item.valorOpcional === "" ? (
+                              <>
+                                <b>Opcional:</b>
+                                {item.opcionalSelecionado}
+                                <br />
+                                <b>Valor opcional:</b>Grátis
+                              </>
+                            ) : (
+                              <>
+                                {item.opcionais == 0 ? (
+                                  console.log("escolheu bebida")
+                                ) : (
+                                  <>
+                                    {" "}
+                                    <b>Opcional:</b>
+                                    {item.opcionalSelecionado}
+                                    <br />
+                                    <b>Valor opcional:</b>
+                                    R$ {item.valorOpcional}
+                                  </>
+                                )}
+                              </>
+                            )}
+                            {item.observacao === "" ? (
+                              console.log("nao tem observacao")
+                            ) : (
+                              <>
+                                <br />
+                                <b>Observação:</b>
+                                {item.observacao}
+                              </>
+                            )}
+                            {item.opcionais == 0 ? (
+                              console.log("nao precisa de espaco se forbebida")
+                            ) : (
                               <br />
-                              {item.adicionais.map((adicional, index) => (
-                                <div key={index}>
-                                  <p>
-                                    {adicional.name}-({adicional.qtde}x)
-                                  </p>
-                                </div>
-                              ))}
-                              <b>Valor Total de adicionais</b>: R${" "}
-                              {item.valorTotalAdicionais.toFixed(2)}
-                              <br />
-                            </>
-                          )}
-                          <b>Valor Do Item:</b> R$ {item.valorTotalDoProduto}
-                          <br />
-                        </Typography>
-                      ))}
-                    <Typography
-                      style={{
-                        backgroundColor: "green",
-                        paddingLeft: "8px",
-                        borderTop: "1px solid black",
-                        color: "white",
-                      }}
-                    >
-                      Valor Total do pedido: R${" "}
-                      {calcularSomaTotal(pedidoFinalizado.itens).toFixed(2)}
-                    </Typography>
-                    {pedidoFinalizado.DadosPessoais.troco === 0 ||
-                    pedidoFinalizado.DadosPessoais.troco === null ||
-                    pedidoFinalizado.DadosPessoais.troco === undefined ||
-                    pedidoFinalizado.DadosPessoais.troco === "0" ? (
-                      console.log("nao precisou de troco/ta trocado")
-                    ) : (
+                            )}
+                            {item.adicionais.length === 0 ? (
+                              console.log("não tem adicionais")
+                            ) : (
+                              <>
+                                <b>Adicionais:</b>
+                                <br />
+                                {item.adicionais.map((adicional, index) => (
+                                  <div key={index}>
+                                    <p>
+                                      {adicional.name}-({adicional.qtde}x)
+                                    </p>
+                                  </div>
+                                ))}
+                                <b>Valor Total de adicionais</b>: R${" "}
+                                {item.valorTotalAdicionais.toFixed(2)}
+                                <br />
+                              </>
+                            )}
+                            <b>Valor Do Item:</b> R$ {item.valorTotalDoProduto}
+                            <br />
+                          </Typography>
+                        ))}
                       <Typography
                         style={{
-                          backgroundColor: "blue",
+                          backgroundColor: "green",
                           paddingLeft: "8px",
                           borderTop: "1px solid black",
                           color: "white",
                         }}
                       >
-                        Troco para:{pedidoFinalizado.DadosPessoais.troco}
+                        Valor Total do pedido: R${" "}
+                        {calcularSomaTotal(pedidoFinalizado.itens).toFixed(2)}
                       </Typography>
-                    )}
-                  </Box>
-                )}
+                      {pedidoFinalizado.DadosPessoais.troco === 0 ||
+                      pedidoFinalizado.DadosPessoais.troco === null ||
+                      pedidoFinalizado.DadosPessoais.troco === undefined ||
+                      pedidoFinalizado.DadosPessoais.troco === "0" ? (
+                        console.log("nao precisou de troco/ta trocado")
+                      ) : (
+                        <Typography
+                          style={{
+                            backgroundColor: "blue",
+                            paddingLeft: "8px",
+                            borderTop: "1px solid black",
+                            color: "white",
+                          }}
+                        >
+                          Troco para:{pedidoFinalizado.DadosPessoais.troco}
+                        </Typography>
+                      )}
+                    </Box>
+                  )}
 
-              {enderecoVisivelPorPedido[pedidoFinalizado.numeroPedido] && (
-                <Typography
-                  style={{
-                    paddingLeft: "8px",
-                    borderTop: "1px solid black",
-                  }}
-                >
-                  <b>Endereço :</b>
-                  <br />
-                  Rua: {pedidoFinalizado.DadosPessoais.endereco.rua}
-                  <br />
-                  Bairro: {pedidoFinalizado.DadosPessoais.endereco.bairro}
-                  <br />
-                  Casa/Apto: {pedidoFinalizado.DadosPessoais.endereco.casaApto}
-                  <br />
-                  CEP: {pedidoFinalizado.DadosPessoais.endereco.cep}
-                  <br />
-                  Cidade: {pedidoFinalizado.DadosPessoais.endereco.cidade}
-                  <br />
-                  Complemento:{" "}
-                  {pedidoFinalizado.DadosPessoais.endereco.complemento}
-                  <br />
-                  Estado: {pedidoFinalizado.DadosPessoais.endereco.estado}
-                </Typography>
-              )}
-            </Box>
-          ))}
+                {enderecoVisivelPorPedido[pedidoFinalizado.numeroPedido] && (
+                  <Typography
+                    style={{
+                      paddingLeft: "8px",
+                      borderTop: "1px solid black",
+                    }}
+                  >
+                    <b>Endereço :</b>
+                    <br />
+                    Rua: {pedidoFinalizado.DadosPessoais.endereco.rua}
+                    <br />
+                    Bairro: {pedidoFinalizado.DadosPessoais.endereco.bairro}
+                    <br />
+                    Casa/Apto:{" "}
+                    {pedidoFinalizado.DadosPessoais.endereco.casaApto}
+                    <br />
+                    CEP: {pedidoFinalizado.DadosPessoais.endereco.cep}
+                    <br />
+                    Cidade: {pedidoFinalizado.DadosPessoais.endereco.cidade}
+                    <br />
+                    Complemento:{" "}
+                    {pedidoFinalizado.DadosPessoais.endereco.complemento}
+                    <br />
+                    Estado: {pedidoFinalizado.DadosPessoais.endereco.estado}
+                  </Typography>
+                )}
+              </Box>
+            ))}
+          </Box>
         </Box>
       </Box>
     </Container>

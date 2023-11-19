@@ -18,18 +18,21 @@ import { account } from "../../../../_mock/account";
 
 export default function AccountPopover() {
   const [open, setOpen] = useState(null);
-  const auth = getAuth(); // Obtenha a instância de autenticação
-  const Navigate = useNavigate(); // Obtenha o objeto de histórico de navegação
+  const auth = getAuth(); 
+  const Navigate = useNavigate(); 
 
   const handleOpen = (event) => {
     setOpen(event.currentTarget);
   };
 
   const handleLogout = () => {
+    console.log("Verificando autenticação...");
+    console.log("Usuário atual:", auth.currentUser);
+  
     signOut(auth)
       .then(() => {
         console.log("Usuário deslogado com sucesso.");
-        Navigate("/admin/login"); 
+        Navigate("/admin/login");
       })
       .catch((error) => {
         console.error("Erro ao deslogar o usuário:", error);
