@@ -26,10 +26,13 @@ export default function AccountPopover() {
   };
 
   const handleLogout = () => {
+    console.log("Verificando autenticação...");
+    console.log("Usuário atual:", auth.currentUser);
+  
     signOut(auth)
       .then(() => {
         console.log("Usuário deslogado com sucesso.");
-        Navigate("/admin/login"); 
+        Navigate("/admin/login");
       })
       .catch((error) => {
         console.error("Erro ao deslogar o usuário:", error);
