@@ -24,7 +24,7 @@ import {
 import { startOfDay, endOfDay } from "date-fns";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-//import CancelIcon from "@mui/icons-material/Cancel";
+import CancelIcon from "@mui/icons-material/Cancel";
 import HomeIcon from "@mui/icons-material/Home";
 import LocalPrintshopRoundedIcon from "@mui/icons-material/LocalPrintshopRounded";
 import Header from "../../../layouts/dashboard/header";
@@ -49,6 +49,8 @@ export default function AppView() {
   const [pedidoEntregue, setPedidoEntregue] = useState([]);
   const [pedidoEmPreparo, setPedidoEmPreparo] = useState([]);
   const [pedidoFinalizado, setPedidoFinalizado] = useState([]);
+  // eslint-disable-next-line no-unused-vars
+  const [pedidoCancelado, setPedidoCancelado] = useState([]);
   const [itensVisiveisPorPedido, setItensVisiveisPorPedido] = useState({});
   const [enderecoVisivelPorPedido, setEnderecoVisivelPorPedido] = useState({});
   const [listaDePedidos, setListaDePedidos] = useState([]);
@@ -306,6 +308,7 @@ export default function AppView() {
         const linkWhatsapp = `https://api.whatsapp.com/send?phone=55${numeroTelefone}&text=${mensagemRetirada}`;
         window.open(linkWhatsapp, "_blank");
       }
+      window.location.reload();
     } catch (error) {
       console.error("Erro ao mover o pedido para entregues:", error);
     }
@@ -603,6 +606,72 @@ export default function AppView() {
     `;
 
     return conteudoFormatado;
+  };
+  const moverRecebidosParaCancelados = async (pedido) => {
+    try {
+      const pedidosEmPreparoRef = collection(
+        db,
+        "PEDIDOS CANCELADOS",
+        "TELEFONE",
+        "PEDIDOS"
+      );
+
+      await addDoc(pedidosEmPreparoRef, {
+        ...pedido,
+        numeroPedido: pedido.numeroPedido,
+      });
+
+      const pedidoOriginalRef = doc(
+        db,
+        "PEDIDOS RECEBIDOS",
+        "TELEFONE",
+        "PEDIDOS",
+        pedido.numeroPedido
+      );
+      await deleteDoc(pedidoOriginalRef);
+
+      setListaDePedidos((pedidos) => pedidos.filter((p) => p !== pedido));
+    } catch (error) {
+      console.error("Erro ao mover o pedido para preparo:", error);
+    }
+  };
+  const moverEmPreparoParaCancelados = async (pedidoEmPreparo) => {
+    try {
+      const pedidosCanceladosRef = collection(
+        db,
+        "PEDIDOS CANCELADOS",
+        "TELEFONE",
+        "PEDIDOS"
+      );
+
+      const docRef = await addDoc(pedidosCanceladosRef, {
+        ...pedidoEmPreparo,
+        numeroPedido: pedidoEmPreparo.numeroPedido,
+      });
+
+      const pedidoEmPreparoRef = doc(
+        db,
+        "PEDIDO EM PREPARO",
+        "TELEFONE",
+        "PEDIDOS",
+        pedidoEmPreparo.id
+      );
+      await deleteDoc(pedidoEmPreparoRef);
+
+      setPedidoEmPreparo((pedidosEmPreparo) =>
+        pedidosEmPreparo.filter((pedido) => pedido !== pedidoEmPreparo)
+      );
+
+      setPedidoCancelado((pedidos) => [
+        ...pedidos,
+        { ...pedidoEmPreparo, id: docRef.id },
+      ]);
+    } catch (error) {
+      console.error(
+        "Erro ao mover o pedido em preparo para cancelados:",
+        error
+      );
+    }
   };
 
   return (
@@ -1151,17 +1220,18 @@ export default function AppView() {
                         onClick={() => prepararPedido(pedido)}
                       />
 
-                      {/*<CancelIcon
-                      titleAccess="negar pedido"
-                      className="click"
-                      sx={{
-                        cursor: "pointer",
-                        color: "red",
-                        "&:hover": {
-                          backgroundColor: "transparent",
-                        },
-                      }}
-                    />*/}
+                      <CancelIcon
+                        titleAccess="negar pedido"
+                        className="click"
+                        sx={{
+                          cursor: "pointer",
+                          color: "red",
+                          "&:hover": {
+                            backgroundColor: "transparent",
+                          },
+                        }}
+                        onClick={() => moverRecebidosParaCancelados(pedido)}
+                      />
 
                       <FormatListBulletedRoundedIcon
                         titleAccess="Itens do pedido"
@@ -1476,17 +1546,20 @@ export default function AppView() {
                         onClick={() => pedidoPronto(pedidoEmPreparo)}
                       />
 
-                      {/*<CancelIcon
-                      titleAccess="negar pedido"
-                      className="click"
-                      sx={{
-                        cursor: "pointer",
-                        color: "red",
-                        "&:hover": {
-                          backgroundColor: "transparent",
-                        },
-                      }}
-                    />*/}
+                      <CancelIcon
+                        titleAccess="negar pedido"
+                        className="click"
+                        sx={{
+                          cursor: "pointer",
+                          color: "red",
+                          "&:hover": {
+                            backgroundColor: "transparent",
+                          },
+                        }}
+                        onClick={() =>
+                          moverEmPreparoParaCancelados(pedidoEmPreparo)
+                        }
+                      />
 
                       <FormatListBulletedRoundedIcon
                         titleAccess="Itens do pedido"
@@ -1807,16 +1880,16 @@ export default function AppView() {
                       />
 
                       {/*<CancelIcon
-                      titleAccess="negar pedido"
-                      className="click"
-                      sx={{
-                        cursor: "pointer",
-                        color: "red",
-                        "&:hover": {
-                          backgroundColor: "transparent",
-                        },
-                      }}
-                    />*/}
+                        titleAccess="negar pedido"
+                        className="click"
+                        sx={{
+                          cursor: "pointer",
+                          color: "red",
+                          "&:hover": {
+                            backgroundColor: "transparent",
+                          },
+                        }}
+                      />*/}
 
                       <FormatListBulletedRoundedIcon
                         titleAccess="Itens do pedido"

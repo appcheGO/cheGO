@@ -13,7 +13,7 @@ import {
   DialogTitle,
   DialogContent,
   Button,
-  DialogActions,
+  DialogActions, 
   Snackbar,
   Alert,
 } from "@mui/material";
@@ -81,9 +81,9 @@ export default function Header() {
                   gap: "1.2rem",
                 }}
               >
-                <div
+                <Box
                   className={isAlertOpen ? "bolaVerde" : "bolaVermelha"}
-                ></div>
+                ></Box>
                 {isAlertOpen ? "Aberto" : "Fechado"}
                 <InfoIcon onClick={() => setIsModalOpen(true)} />
               </Box>
