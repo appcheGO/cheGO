@@ -157,10 +157,6 @@ export function CarrinhoProvider({ children }) {
         ...prevProducts,
         item,
       ]);
-    } else {
-      console.log(
-        'Não é possível adicionar itens ao carrinho, o estabelecimento está fechado.'
-      );
     }
   };
 
