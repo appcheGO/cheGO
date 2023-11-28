@@ -7,7 +7,6 @@ import Toolbar from '@mui/material/Toolbar';
 import IconButton from '@mui/material/IconButton';
 import Drawer from '@mui/material/Drawer';
 import Iconify from '../../components/iconify';
-import AccountPopover from './common/account-popover';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import { Button, Typography } from '@mui/material';
 import { NavLink, useNavigate } from 'react-router-dom';
@@ -33,15 +32,15 @@ export default function Header() {
         direction="row"
         alignItems="center"
         spacing={1}
-      >
-        <AccountPopover />
-      </Stack>
+      ></Stack>
     </>
   );
 
   const handleNavigateTable = () => {
     navigate('/admin/mesas');
-    console.log('cliquei aqui');
+  };
+  const handleNavigateDElivery = () => {
+    navigate('/admin/dashboard');
   };
 
   return (
@@ -88,7 +87,7 @@ export default function Header() {
               height: '20%',
             }}
           >
-            <Button>
+            <Button onClick={handleNavigateDElivery}>
               <Typography
                 variant="h6"
                 sx={{ color: 'black' }}

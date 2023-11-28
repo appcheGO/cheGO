@@ -4,6 +4,7 @@ import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
+import Container from '@mui/material/Container';
 
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
@@ -12,28 +13,17 @@ import { alpha, useTheme } from '@mui/material/styles';
 import InputAdornment from '@mui/material/InputAdornment';
 import { bgGradient } from '../../theme/css';
 import Iconify from '../../components/iconify';
-import { initializeApp } from 'firebase/app';
 import {
   getAuth,
   signInWithEmailAndPassword,
 } from 'firebase/auth';
 
 import { useNavigate } from 'react-router-dom';
-// import { LoadingButton } from '@mui/lab/LoadingButton';
+import app from '../../../../Firebase/firebase';
 
-// ----------------------------------------------------------------------
-const firebaseConfig = {
-  apiKey: 'AIzaSyCtUEJucj4FgNrJgwLhcpzZ7OJVCqjM8ls',
-  authDomain: 'testeapp-666bc.firebaseapp.com',
-  projectId: 'testeapp-666bc',
-  storageBucket: 'testeapp-666bc.appspot.com',
-  messagingSenderId: '273940847816',
-  appId: '1:273940847816:web:7d5c1f136cb8cac3c159fd',
-};
-const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
-export default function LoginView() {
+export default function Login() {
   const theme = useTheme();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
@@ -113,44 +103,46 @@ export default function LoginView() {
   );
 
   return (
-    <Box
-      sx={{
-        ...bgGradient({
-          color: alpha(
-            theme.palette.background.default,
-            0.9
-          ),
-          imgUrl: '/assets/background/overlay_4.jpg',
-        }),
-        height: 1,
-        display: 'flex',
-        justifyContent: 'center',
-      }}
-    >
-      <Stack
-        alignItems="center"
-        justifyContent="center"
-        sx={{ height: 1, width: '90%' }}
+    <Container sx={{ height: '100vh' }}>
+      <Box
+        sx={{
+          ...bgGradient({
+            color: alpha(
+              theme.palette.background.default,
+              0.9
+            ),
+            imgUrl: '/assets/background/overlay_4.jpg',
+          }),
+          height: 1,
+          display: 'flex',
+          justifyContent: 'center',
+        }}
       >
-        <Card
-          className="box-shadow"
-          sx={{
-            p: 5,
-            width: 1,
-            maxWidth: 420,
-            backgroundColor: '#fae9de',
-          }}
+        <Stack
+          alignItems="center"
+          justifyContent="center"
+          sx={{ height: 1, width: '90%' }}
         >
-          <Typography
-            variant="h4"
-            sx={{ textAlign: 'center', mb: 2 }}
+          <Card
+            className="box-shadow"
+            sx={{
+              p: 5,
+              width: 1,
+              maxWidth: 420,
+              backgroundColor: '#fae9de',
+            }}
           >
-            Login
-          </Typography>
+            <Typography
+              variant="h4"
+              sx={{ textAlign: 'center', mb: 2 }}
+            >
+              Login
+            </Typography>
 
-          {renderForm}
-        </Card>
-      </Stack>
-    </Box>
+            {renderForm}
+          </Card>
+        </Stack>
+      </Box>
+    </Container>
   );
 }

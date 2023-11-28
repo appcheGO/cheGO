@@ -9,9 +9,9 @@ import {
 } from 'react-router-dom';
 import Home from './pages/Home.jsx';
 import Order from './pages/Order.jsx';
-import LoginPage from '../src/admin/src/pages/login.jsx';
-import AppPage from './admin/src/pages/app.jsx';
 import { Tables } from './admin/src/pages/Tables/Tables.jsx';
+import HomeDashboard from './admin/src/pages/HomeDashboard/HomeDashboard.jsx';
+import Login from './admin/src/pages/Login/Login.jsx';
 
 const routes = [
   {
@@ -34,11 +34,11 @@ const routes = [
     children: [
       {
         path: 'login',
-        element: <LoginPage />,
+        element: <Login />,
       },
       {
         path: 'dashboard',
-        element: <AppPage />,
+        element: <HomeDashboard />,
       },
       {
         path: 'mesas',
