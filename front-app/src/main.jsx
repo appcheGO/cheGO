@@ -1,17 +1,57 @@
+/* eslint-disable react/prop-types */
 /* eslint-disable react/jsx-no-undef */
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App.jsx';
 import {
   Outlet,
+  Route,
+  Routes,
   RouterProvider,
   createBrowserRouter,
+  useNavigate,
 } from 'react-router-dom';
 import Home from './pages/Home.jsx';
 import Order from './pages/Order.jsx';
 import LoginPage from '../src/admin/src/pages/login.jsx';
-import AppPage from './admin/src/pages/app.jsx';
 import { Tables } from './admin/src/pages/Tables/Tables.jsx';
+import {
+  auth,
+  onAuthStateChanged,
+} from './Firebase/firebase.js';
+import AppView from './admin/src/sections/overview/view/app-view.jsx';
+
+// eslint-disable-next-line react-refresh/only-export-components
+const PrivateRoute = ({ element: Element, ...rest }) => {
+  const [user, setUser] = useState(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(
+      auth,
+      (authUser) => {
+        setUser(authUser);
+
+        if (!authUser) {
+          navigate('/admin/login');
+        }
+      }
+    );
+
+    return () => {
+      unsubscribe();
+    };
+  }, [navigate]);
+
+  return (
+    <Routes>
+      <Route
+        element={user ? <Element /> : null}
+        {...rest}
+      />
+    </Routes>
+  );
+};
 
 const routes = [
   {
@@ -37,12 +77,12 @@ const routes = [
         element: <LoginPage />,
       },
       {
-        path: 'dashboard',
-        element: <AppPage />,
+        path: 'dashboard/*',
+        element: <PrivateRoute element={<AppView />} />,
       },
       {
         path: 'mesas',
-        element: <Tables />,
+        element: <PrivateRoute element={<Tables />} />,
       },
     ],
   },
