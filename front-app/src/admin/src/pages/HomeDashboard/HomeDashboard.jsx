@@ -29,10 +29,9 @@ import CancelIcon from "@mui/icons-material/Cancel";
 import HomeIcon from "@mui/icons-material/Home";
 import LocalPrintshopRoundedIcon from "@mui/icons-material/LocalPrintshopRounded";
 import FormatListBulletedRoundedIcon from "@mui/icons-material/FormatListBulletedRounded";
-
+import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 import Header from "../../components/Header/Header";
 import app from "../../../../Firebase/firebase";
-import { useFormat } from "../../../../utils/useFormat";
 
 export default function HomeDashboard() {
   const db = getFirestore(app);
@@ -526,7 +525,7 @@ export default function HomeDashboard() {
   const imprimirPedido = (pedido) => {
     const conteudoPedido = formatarDadosPedido(pedido);
 
-    const janelaImpressao = window.open("", "_blank");
+    const janelaImpressao = window.open("", "_blank", "width=600,height=600");
     janelaImpressao.document.write(conteudoPedido);
     janelaImpressao.document.close();
     janelaImpressao.print();
@@ -618,6 +617,13 @@ export default function HomeDashboard() {
         })
         .join("<br/>")}<br/>`;
     }
+    if (
+      item.ingredientes &&
+      item.ingredientes.toLowerCase().includes("bebida")
+    ) {
+      conteudo += "<br/>";
+    }
+
     conteudo += `Quantidade: ${item.quantidade}`;
     if (item.observacao) {
       conteudo += `<br/>Observação: ${item.observacao}`;
@@ -842,6 +848,15 @@ export default function HomeDashboard() {
       );
     }
   };*/
+  const iniciarConversaWhatsApp = (numeroTelefone) => {
+    // Remova caracteres não numéricos do número de telefone
+    const numeroLimpo = numeroTelefone.replace(/\D/g, "");
+
+    // Crie o link do WhatsApp com o número de telefone
+    const linkWhatsApp = `https://wa.me/55${numeroLimpo}`;
+    // Abra o link em uma nova janela ou guia
+    window.open(linkWhatsApp, "_blank");
+  };
 
   return (
     <Container
@@ -1354,15 +1369,15 @@ export default function HomeDashboard() {
                   boxShadow: "2px 0px 10px 1px rgba(0, 0, 0, 0.2)",
                 }}
               >
-                <Box
+                 <Box
                   sx={{
                     display: "flex",
                     flexDirection: "row",
                     alignItems: "center",
-                    justifyItems: "center",
+                    justifyContent: "space-between",
                     width: "100%",
                     height: "2rem",
-                    gap: "1rem",
+                    pr: 2,
                     pl: 1,
                   }}
                 >
@@ -1405,6 +1420,13 @@ export default function HomeDashboard() {
                     sx={{ cursor: "pointer" }}
                     variant="outlined"
                     onClick={() => imprimirPedido(pedido)}
+                  />
+                  <WhatsAppIcon
+                   titleAccess="Chamar cliente"
+                    sx={{ cursor: "pointer", color: "green" }}
+                    onClick={() =>
+                      iniciarConversaWhatsApp(pedido.DadosPessoais.telefone)
+                    }
                   />
                 </Box>
                 <Typography sx={{ pl: 1, pt: 1 }}>
@@ -1732,15 +1754,15 @@ export default function HomeDashboard() {
                   boxShadow: "2px 0px 10px 1px rgba(0, 0, 0, 0.2)",
                 }}
               >
-                <Box
+                 <Box
                   sx={{
                     display: "flex",
                     flexDirection: "row",
                     alignItems: "center",
-                    justifyItems: "center",
+                    justifyContent: "space-between",
                     width: "100%",
                     height: "2rem",
-                    gap: "1rem",
+                    pr: 2,
                     pl: 1,
                   }}
                 >
@@ -1784,6 +1806,15 @@ export default function HomeDashboard() {
                     sx={{ cursor: "pointer" }}
                     variant="outlined"
                     onClick={() => imprimirPedidoEntregador(pedidoEmPreparo)}
+                  />
+                  <WhatsAppIcon
+                   titleAccess="Chamar cliente"
+                    sx={{ cursor: "pointer", color: "green" }}
+                    onClick={() =>
+                      iniciarConversaWhatsApp(
+                        pedidoEmPreparo.DadosPessoais.telefone
+                      )
+                    }
                   />
                 </Box>
                 <Typography sx={{ pl: 1, pt: 1 }}>
@@ -2118,15 +2149,15 @@ export default function HomeDashboard() {
                   boxShadow: "2px 0px 10px 1px rgba(0, 0, 0, 0.2)",
                 }}
               >
-                <Box
+                 <Box
                   sx={{
                     display: "flex",
                     flexDirection: "row",
                     alignItems: "center",
-                    justifyItems: "center",
+                    justifyContent: "space-between",
                     width: "100%",
                     height: "2rem",
-                    gap: "1rem",
+                    pr: 2,
                     pl: 1,
                   }}
                 >
@@ -2169,6 +2200,15 @@ export default function HomeDashboard() {
                     sx={{ cursor: "pointer" }}
                     variant="outlined"
                     onClick={() => imprimirPedidoEntregador(pedidoFinalizado)}
+                  />
+                  <WhatsAppIcon
+                   titleAccess="Chamar cliente"
+                    sx={{ cursor: "pointer", color: "green" }}
+                    onClick={() =>
+                      iniciarConversaWhatsApp(
+                        pedidoFinalizado.DadosPessoais.telefone
+                      )
+                    }
                   />
                 </Box>
                 <Typography sx={{ pl: 1, pt: 1 }}>

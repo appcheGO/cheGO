@@ -1,7 +1,7 @@
 /* eslint-disable react/jsx-no-undef */
 /* eslint-disable react-hooks/rules-of-hooks */
 /* eslint-disable no-unused-vars */
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 import {
   getFirestore,
   collection,
@@ -9,8 +9,8 @@ import {
   orderBy,
   query,
   updateDoc,
-} from 'firebase/firestore';
-import { initializeApp } from 'firebase/app';
+} from "firebase/firestore";
+
 import {
   Box,
   Typography,
@@ -19,52 +19,42 @@ import {
   FormControlLabel,
   Switch,
   Input,
-} from '@mui/material';
-import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
-import { useFormat } from '../../../../utils/useFormat';
-import Header from '../../components/Header/Header';
-import EditIcon from '@mui/icons-material/Edit';
-
-import app from '../../../../Firebase/firebase';
-
+  Chip,
+} from "@mui/material";
+import FormatListBulletedIcon from "@mui/icons-material/FormatListBulleted";
+import { useFormat } from "../../../../utils/useFormat";
+import Header from "../../components/Header/Header";
+import EditIcon from "@mui/icons-material/Edit";
+import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
+import app from "../../../../Firebase/firebase";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
 const firestore = getFirestore(app);
 
 export const Tables = () => {
   const [numMesas, setNumMesas] = useState(0);
   const [mesaStatus, setMesaStatus] = useState({});
-  const [
-    showCommandWaiterModal,
-    setShowCommandWaiterModal,
-  ] = useState(false);
+  const [showCommandWaiterModal, setShowCommandWaiterModal] = useState(false);
   const [selectedMesa, setSelectedMesa] = useState(null);
   const [pedidosMesa, setPedidosMesa] = useState([]);
-  const [dadosPedidoMesa, setDadosPedidoMesa] =
-    useState(null);
-  const [showCloseCommandModal, setShowCloseCommandModal] =
-    useState(false);
+  const [dadosPedidoMesa, setDadosPedidoMesa] = useState(null);
+  const [showCloseCommandModal, setShowCloseCommandModal] = useState(false);
   const [switchChecked, setSwitchChecked] = useState(false);
-  const [editPeopleCount, setEditPeopleCount] =
-    useState(false);
-  const [totalSem10Percent, setTotalSem10Percent] =
-    useState(0);
+  const [editPeopleCount, setEditPeopleCount] = useState(false);
+  const [totalSem10Percent, setTotalSem10Percent] = useState(0);
   const [valorPorPessoa, setValorPorPessoa] = useState(0);
-  const [showPaymentButtons, setShowPaymentButtons] =
-    useState(false);
-  const [showAdditionalInfo, setShowAdditionalInfo] =
-    useState(false);
+  const [showPaymentButtons, setShowPaymentButtons] = useState(false);
+  const [showAdditionalInfo, setShowAdditionalInfo] = useState(false);
+  const [selectedMesaData, setSelectedMesaData] = useState({});
+  const [dadosPresentes, setDadosPresentes] = useState(false);
 
   const handleEditPeopleCount = () => {
     setEditPeopleCount(true);
   };
+
   useEffect(() => {
     const fetchNumMesas = async () => {
-      const mesasCollectionRef = collection(
-        firestore,
-        'PEDIDOS MESAS'
-      );
-      const mesasSnapshot = await getDocs(
-        mesasCollectionRef
-      );
+      const mesasCollectionRef = collection(firestore, "PEDIDOS MESAS");
+      const mesasSnapshot = await getDocs(mesasCollectionRef);
       setNumMesas(mesasSnapshot.size);
     };
 
@@ -74,7 +64,7 @@ export const Tables = () => {
   useEffect(() => {
     const fetchStatusMesas = async () => {
       const status = {};
-
+      const teste = {};
       for (let mesa = 1; mesa <= numMesas; mesa++) {
         const statusCollectionRef = collection(
           firestore,
@@ -82,24 +72,41 @@ export const Tables = () => {
         );
         const consulta = query(statusCollectionRef);
 
-        const resultadoConsulta = await getDocs(consulta);
-        if (
-          resultadoConsulta.empty ||
-          !resultadoConsulta.docs[0].data().Pedido ||
-          resultadoConsulta.docs[0].data().Pedido.length ===
-            0
-        ) {
-          status[mesa] = 'LIVRE';
-        } else {
-          status[mesa] = 'OCUPADA';
+        try {
+          const resultadoConsulta = await getDocs(consulta);
+
+          if (!resultadoConsulta.empty) {
+            const primeiroDocumento = resultadoConsulta.docs[0];
+            const dadosStatus = primeiroDocumento.data();
+
+            if (
+              dadosStatus.Pedido &&
+              dadosStatus.Pedido.length > 0 &&
+              Object.keys(dadosStatus.Pedido[0]).length > 0
+            ) {
+              status[mesa] = "OCUPADA";
+              teste[mesa] = dadosStatus;
+            } else if (dadosStatus.Pedido) {
+              status[mesa] = "LIVRE";
+            } else {
+              status[mesa] = "LIVRE";
+            }
+          } else {
+            status[mesa] = "LIVRE";
+          }
+        } catch (error) {
+          console.error(`Erro ao buscar dados da mesa ${mesa}:`, error);
         }
       }
 
+      setDadosPresentes(Object.keys(teste).length > 0);
+      setSelectedMesaData(teste);
       setMesaStatus(status);
     };
 
     fetchStatusMesas();
   }, [numMesas]);
+
   useEffect(() => {
     if (dadosPedidoMesa) {
       const totalCom10Percent =
@@ -124,8 +131,7 @@ export const Tables = () => {
       );
 
       setValorPorPessoa(
-        totalCom10Percent /
-          dadosPedidoMesa.quantidadeDePessoasNaMesa
+        totalCom10Percent / dadosPedidoMesa.quantidadeDePessoasNaMesa
       );
     }
   }, [dadosPedidoMesa, switchChecked]);
@@ -169,10 +175,7 @@ export const Tables = () => {
       firestore,
       `PEDIDOS MESAS/MESA ${mesa}/STATUS`
     );
-    const consulta = query(
-      statusCollectionRef,
-      orderBy('idPedido', 'asc')
-    );
+    const consulta = query(statusCollectionRef, orderBy("idPedido", "asc"));
     const resultadoConsulta = await getDocs(consulta);
 
     const primeiroDocumento = resultadoConsulta.docs[0];
@@ -262,15 +265,11 @@ export const Tables = () => {
     ${Pedido.map(
       (item, index) => `
       Item ${index + 1}:
-      <br/>Sabor: ${item.item.sabor || 'N/A'}
-      <br/>Valor (a): ${
-        item.item.valor ? useFormat(item.item.valor) : 'N/A'
-      }
-      <br/>Opcionais: ${item.opcionais || 'N/A'}
+      <br/>Sabor: ${item.item.sabor || "N/A"}
+      <br/>Valor (a): ${item.item.valor ? useFormat(item.item.valor) : "N/A"}
+      <br/>Opcionais: ${item.opcionais || "N/A"}
       <br/>Valor do opcional (b): ${
-        item.Valoropcional
-          ? useFormat(item.Valoropcional)
-          : 'Gratis'
+        item.Valoropcional ? useFormat(item.Valoropcional) : "Gratis"
       }<br/>
       
       ${
@@ -281,21 +280,19 @@ export const Tables = () => {
                 .map(
                   (adicionalItem, adicionalIndex) => `
                   <br/>
-            ${adicionalItem.name} - (${
-                    adicionalItem.qtde
-                  }x) - ${useFormat(
+            ${adicionalItem.name} - (${adicionalItem.qtde}x) - ${useFormat(
                     adicionalItem.qtde * adicionalItem.valor
                   )}
           `
                 )
-                .join('')}
+                .join("")}
     <br/>
       Valor adicional (c): ${useFormat(
         calcularSomaValoresAdicionais(item.adicional)
       )}<br/>
      
   
-      Observação: ${item.observacao || 'Sem observação'}
+      Observação: ${item.observacao || "Sem observação"}
       <br/>
       Quantidade: ${item.item.quantidade}
       <br/>
@@ -317,7 +314,7 @@ export const Tables = () => {
       ---------------------------------------
       <br/>
     `
-    ).join('')}
+    ).join("")}
   
     Valor total da comanda: ${useFormat(totalSem10Percent)}
     <br/>
@@ -326,9 +323,7 @@ export const Tables = () => {
         ? `
     Valor dos 10%: ${useFormat(totalSem10Percent * 0.1)}
     <br/>
-    Valor total com 10%: ${useFormat(
-      totalSem10Percent * 1.1
-    )}
+    Valor total com 10%: ${useFormat(totalSem10Percent * 1.1)}
     <br/>
     Valor por pessoa: ${useFormat(valorPorPessoa)}
     <br/>
@@ -344,70 +339,120 @@ export const Tables = () => {
   };
 
   const imprimirPedidoModal = (dadosPedidoMesa) => {
-    const conteudoPedido =
-      formatarDadosPedidoModal(dadosPedidoMesa);
+    const conteudoPedido = formatarDadosPedidoModal(dadosPedidoMesa);
 
-    const janelaImpressao = window.open('', '_blank');
+    const janelaImpressao = window.open("", "_blank");
     janelaImpressao.document.write(conteudoPedido);
     janelaImpressao.document.close();
     janelaImpressao.print();
   };
   return (
     <Box
-    className="backgroundAdmin"
+      className="backgroundAdmin"
       sx={{
-        width: '100%',
-        height: '100dvh',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-       
+        width: "100%",
+        height: "100dvh",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
       }}
     >
       <Header />
+
       <Box
         display="flex"
         width="100%"
         justifyContent="space-around"
         flexWrap="wrap"
-        gap={2}
       >
-        {Array.from(
-          { length: numMesas },
-          (_, index) => index + 1
-        ).map((mesa) => (
-          <Box
-            key={mesa}
-            width="9rem"
-            height="5rem"
-            display="flex"
-            flexDirection="row"
-            alignItems="center"
-            justifyContent="space-around"
-            sx={{
-              backgroundColor:
-                mesaStatus[mesa] === 'LIVRE'
-                  ? 'green'
-                  : 'red',
-              borderRadius: 1,
-            }}
-          >
-            <Typography
-              sx={{ color: 'white' }}
-            >{`Mesa ${mesa}`}</Typography>
-            {mesaStatus[mesa] === 'LIVRE' ? (
-              <Box />
-            ) : (
-              <FormatListBulletedIcon
-                variant="contained"
-                sx={{ color: 'white', cursor: 'pointer' }}
-                onClick={() =>
-                  handleOpenCommandWaiterModal(mesa)
-                }
-              />
-            )}
-          </Box>
-        ))}
+        {Array.from({ length: numMesas }, (_, index) => index + 1).map(
+          (mesa) => (
+            <Box
+              key={mesa}
+              width="12rem"
+              height="8rem"
+              display="flex"
+              flexDirection="column"
+              alignItems="center"
+              justifyContent="space-between"
+              sx={{
+                backgroundColor: mesaStatus[mesa] === "LIVRE" ? "green" : "red",
+                borderRadius: 1,
+                mt: 5,
+              }}
+            >
+              {mesaStatus[mesa] === "LIVRE" ? (
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: "100%",
+                    height: "100%",
+                  }}
+                >
+                  {" "}
+                  <Typography
+                    sx={{ color: "white" }}
+                  >{`Mesa ${mesa}`}</Typography>
+                </Box>
+              ) : (
+                <>
+                  {selectedMesaData && (
+                    <>
+                      {" "}
+                      <Box
+                        sx={{
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          justifyContent: "space-around",
+                          width: "100%",
+                          height: "100%",
+                        }}
+                      >
+                        <Typography
+                          sx={{
+                            color: "white",
+                            width: "100%",
+                            height: "30%",
+                            textAlign: "center",
+                          }}
+                        >{`Mesa ${mesa}`}</Typography>
+                        <Chip
+                          sx={{ width: "95%" }}
+                          color="success"
+                          size="small"
+                          icon={<FormatListBulletedIcon />}
+                          label="Pedido"
+                          onClick={() => handleOpenCommandWaiterModal(mesa)}
+                        />
+                        <Chip
+                          sx={{
+                            width: "95%",
+                            background: "#1F2C38",
+                            color: "white",
+                          }}
+                          size="small"
+                          icon={<PeopleAltIcon style={{ color: "white" }} />}
+                          label={`${selectedMesaData[mesa]?.quantidadeDePessoasNaMesa} Pessoas`}
+                        />
+                        <Chip
+                          sx={{ width: "95%" }}
+                          color="warning"
+                          size="small"
+                          icon={<AccessTimeIcon />}
+                          label={selectedMesaData[mesa]?.dataHoraPedido}
+                        />
+                      </Box>
+                    </>
+                  )}
+                </>
+              )}
+            </Box>
+          )
+        )}
       </Box>
 
       <Modal
@@ -417,25 +462,25 @@ export const Tables = () => {
         <Box
           p={2}
           sx={{
-            overflow: 'auto',
-            width: '85%',
-            maxWidth: '350px',
-            maxHeight: '90%',
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            bgcolor: 'white',
+            overflow: "auto",
+            width: "85%",
+            maxWidth: "350px",
+            maxHeight: "90%",
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            bgcolor: "white",
           }}
         >
           <Typography>
-            <b style={{ fontSize: '1.25rem' }}>Mesa: </b>
+            <b style={{ fontSize: "1.25rem" }}>Mesa: </b>
             {selectedMesa}
           </Typography>
           <Box
             sx={{
-              width: '100%',
-              border: '1px black solid',
+              width: "100%",
+              border: "1px black solid",
             }}
           ></Box>
           {dadosPedidoMesa && (
@@ -445,266 +490,231 @@ export const Tables = () => {
                   <b>Pedido:</b> {dadosPedidoMesa.idPedido}
                 </Typography>
                 <Typography>
-                  <b>Garçom:</b>{' '}
-                  {dadosPedidoMesa.UsuarioQueIniciouOPedido}
+                  <b>Garçom:</b> {dadosPedidoMesa.UsuarioQueIniciouOPedido}
                 </Typography>
                 <Typography>
-                  <b>Inicio do pedido:</b>{' '}
-                  {dadosPedidoMesa.dataHoraPedido}
+                  <b>Inicio do pedido:</b> {dadosPedidoMesa.dataHoraPedido}
                 </Typography>
 
                 <Typography>
-                  <b>Pessoas na mesa:</b>{' '}
-                  {
-                    dadosPedidoMesa.quantidadeDePessoasNaMesa
-                  }
+                  <b>Pessoas na mesa:</b>{" "}
+                  {dadosPedidoMesa.quantidadeDePessoasNaMesa}
                 </Typography>
                 <Box
                   sx={{
-                    width: '100%',
-                    border: '1px black solid',
+                    width: "100%",
+                    border: "1px black solid",
                   }}
                 ></Box>
                 <Box
                   sx={{
-                    width: '100%',
-                    height: '100%',
-                    overflow: 'auto',
+                    width: "100%",
+                    height: "100%",
+                    overflow: "auto",
                   }}
                 >
-                  {dadosPedidoMesa.Pedido.map(
-                    (item, index) => (
-                      <Box key={index}>
-                        <Typography>
-                          <b>Item:</b> {item.item.sabor}
-                        </Typography>
+                  {dadosPedidoMesa.Pedido.map((item, index) => (
+                    <Box key={index}>
+                      <Typography>
+                        <b>Item:</b> {item.item.sabor}
+                      </Typography>
+                      <Typography>
+                        <b>
+                          Valor <span style={{ fontSize: "0.7rem" }}>(a)</span>:{" "}
+                        </b>
+                        {useFormat(item.item.valor)}
+                      </Typography>
+                      <Typography>
+                        <b>Opcional: </b>
+                        {item.opcionais}
+                      </Typography>
+                      {item.Valoropcional == "" ? (
                         <Typography>
                           <b>
-                            Valor{' '}
+                            Valor do opcional{" "}
                             <span
-                              style={{ fontSize: '0.7rem' }}
+                              style={{
+                                fontSize: "0.7rem",
+                              }}
                             >
-                              (a)
+                              (b)
                             </span>
-                            :{' '}
-                          </b>
-                          {useFormat(item.item.valor)}
+                            :
+                          </b>{" "}
+                          Gratis
                         </Typography>
+                      ) : (
                         <Typography>
-                          <b>Opcional: </b>
-                          {item.opcionais}
+                          <b>
+                            Valor do opcional{" "}
+                            <span
+                              style={{
+                                fontSize: "0.7rem",
+                              }}
+                            >
+                              (b)
+                            </span>
+                            :{" "}
+                          </b>
+                          {useFormat(item.Valoropcional)}
                         </Typography>
-                        {item.Valoropcional == '' ? (
-                          <Typography>
-                            <b>
-                              Valor do opcional{' '}
-                              <span
-                                style={{
-                                  fontSize: '0.7rem',
-                                }}
-                              >
-                                (b)
-                              </span>
-                              :
-                            </b>{' '}
-                            Gratis
-                          </Typography>
-                        ) : (
-                          <Typography>
-                            <b>
-                              Valor do opcional{' '}
-                              <span
-                                style={{
-                                  fontSize: '0.7rem',
-                                }}
-                              >
-                                (b)
-                              </span>
-                              :{' '}
-                            </b>
-                            {useFormat(item.Valoropcional)}
-                          </Typography>
-                        )}
-                        {item.adicional == 0 ? (
-                          <Box />
-                        ) : (
-                          <Typography>
-                            <b>Adicionais:</b>
-                          </Typography>
-                        )}
-                        {item.adicional &&
-                          item.adicional.length > 0 && (
-                            <>
-                              <ul>
-                                {item.adicional.map(
-                                  (
-                                    adicionalItem,
-                                    adicionalIndex
-                                  ) => (
-                                    // eslint-disable-next-line react/jsx-key
-                                    <Typography
-                                      key={adicionalIndex}
-                                    >
-                                      {' '}
-                                      <span
-                                        style={{
-                                          fontWeight: '400',
-                                        }}
-                                      >
-                                        <li
-                                          style={{
-                                            listStyle:
-                                              'none',
-                                          }}
-                                        >
-                                          {
-                                            adicionalItem.name
-                                          }{' '}
-                                          - (
-                                          {
-                                            adicionalItem.qtde
-                                          }
-                                          x) -{' '}
-                                          {useFormat(
-                                            adicionalItem.qtde *
-                                              adicionalItem.valor
-                                          )}
-                                        </li>
-                                      </span>
-                                    </Typography>
-                                  )
-                                )}
-                              </ul>
-                              <Typography>
-                                <b>
-                                  Valor adicional{' '}
+                      )}
+                      {item.adicional == 0 ? (
+                        <Box />
+                      ) : (
+                        <Typography>
+                          <b>Adicionais:</b>
+                        </Typography>
+                      )}
+                      {item.adicional && item.adicional.length > 0 && (
+                        <>
+                          <ul>
+                            {item.adicional.map(
+                              (adicionalItem, adicionalIndex) => (
+                                // eslint-disable-next-line react/jsx-key
+                                <Typography key={adicionalIndex}>
+                                  {" "}
                                   <span
                                     style={{
-                                      fontSize: '0.7rem',
+                                      fontWeight: "400",
                                     }}
                                   >
-                                    (c)
+                                    <li
+                                      style={{
+                                        listStyle: "none",
+                                      }}
+                                    >
+                                      {adicionalItem.name} - (
+                                      {adicionalItem.qtde}
+                                      x) -{" "}
+                                      {useFormat(
+                                        adicionalItem.qtde * adicionalItem.valor
+                                      )}
+                                    </li>
                                   </span>
-                                  :
-                                </b>{' '}
-                                {useFormat(
-                                  calcularSomaValoresAdicionais(
-                                    item.adicional
-                                  )
-                                )}
-                              </Typography>
-                            </>
-                          )}
-                        {item.observacao === '' ? (
-                          <Box />
-                        ) : (
+                                </Typography>
+                              )
+                            )}
+                          </ul>
                           <Typography>
-                            <b>Observação:</b>
-                            {item.observacao}
+                            <b>
+                              Valor adicional{" "}
+                              <span
+                                style={{
+                                  fontSize: "0.7rem",
+                                }}
+                              >
+                                (c)
+                              </span>
+                              :
+                            </b>{" "}
+                            {useFormat(
+                              calcularSomaValoresAdicionais(item.adicional)
+                            )}
                           </Typography>
-                        )}
+                        </>
+                      )}
+                      {item.observacao === "" ? (
+                        <Box />
+                      ) : (
                         <Typography>
-                          <b>Quantidade: </b>
-                          {item.item.quantidade}
+                          <b>Observação:</b>
+                          {item.observacao}
                         </Typography>
-                        {item.adicional &&
-                        item.adicional.length == 0 ? (
-                          <Typography>
-                            <b>
-                              Valor total do item{' '}
-                              <span
-                                style={{
-                                  fontSize: '0.7rem',
-                                }}
-                              >
-                                (a)+(b)
-                              </span>
-                              :
-                            </b>
-                            {useFormat(
-                              Number(item.item.valor) +
-                                Number(item.Valoropcional)
-                            )}
-                          </Typography>
-                        ) : (
-                          <Typography>
-                            <b>
-                              Valor total do item{' '}
-                              <span
-                                style={{
-                                  fontSize: '0.7rem',
-                                }}
-                              >
-                                (a)+(b)+(c)
-                              </span>
-                              :
-                            </b>
-                            {useFormat(
-                              Number(item.item.valor) +
-                                Number(item.Valoropcional) +
-                                calcularSomaValoresAdicionais(
-                                  item.adicional
-                                )
-                            )}
-                          </Typography>
-                        )}{' '}
-                        <Button
-                          sx={{ mb: 1 }}
-                          variant="contained"
-                          color="error"
-                          size="small"
-                          onClick={() =>
-                            handleRemoveItem(index)
-                          }
-                        >
-                          Remover Item
-                        </Button>
-                        <Box
-                          sx={{
-                            width: '100%',
-                            border: '1px black solid',
-                          }}
-                        ></Box>
-                      </Box>
-                    )
-                  )}
+                      )}
+                      <Typography>
+                        <b>Quantidade: </b>
+                        {item.item.quantidade}
+                      </Typography>
+                      {item.adicional && item.adicional.length == 0 ? (
+                        <Typography>
+                          <b>
+                            Valor total do item{" "}
+                            <span
+                              style={{
+                                fontSize: "0.7rem",
+                              }}
+                            >
+                              (a)+(b)
+                            </span>
+                            :
+                          </b>
+                          {useFormat(
+                            Number(item.item.valor) + Number(item.Valoropcional)
+                          )}
+                        </Typography>
+                      ) : (
+                        <Typography>
+                          <b>
+                            Valor total do item{" "}
+                            <span
+                              style={{
+                                fontSize: "0.7rem",
+                              }}
+                            >
+                              (a)+(b)+(c)
+                            </span>
+                            :
+                          </b>
+                          {useFormat(
+                            Number(item.item.valor) +
+                              Number(item.Valoropcional) +
+                              calcularSomaValoresAdicionais(item.adicional)
+                          )}
+                        </Typography>
+                      )}{" "}
+                      <Button
+                        sx={{ mb: 1 }}
+                        variant="contained"
+                        color="error"
+                        size="small"
+                        onClick={() => handleRemoveItem(index)}
+                      >
+                        Remover Item
+                      </Button>
+                      <Box
+                        sx={{
+                          width: "100%",
+                          border: "1px black solid",
+                        }}
+                      ></Box>
+                    </Box>
+                  ))}
                 </Box>
               </Box>
               {dadosPedidoMesa.Pedido.length > 0 && (
                 <>
                   <Typography>
-                    <b>Valor total da comanda:</b>{' '}
+                    <b>Valor total da comanda:</b>{" "}
                     {useFormat(totalSem10Percent)}
                   </Typography>
                   {switchChecked && (
                     <>
                       <Typography>
-                        <b>Valor dos 10%:</b>{' '}
+                        <b>Valor dos 10%:</b>{" "}
                         {useFormat(totalSem10Percent * 0.1)}
                       </Typography>
                       <Typography>
-                        <b>Valor total com 10%:</b>{' '}
+                        <b>Valor total com 10%:</b>{" "}
                         {useFormat(totalSem10Percent * 1.1)}
                       </Typography>
                       <Typography>
-                        <b>Valor por pessoa:</b>{' '}
-                        {useFormat(valorPorPessoa)}
+                        <b>Valor por pessoa:</b> {useFormat(valorPorPessoa)}
                       </Typography>
                     </>
                   )}
                   {!switchChecked && (
                     <Typography>
-                      <b>Valor por pessoa:</b>{' '}
-                      {useFormat(valorPorPessoa)}
+                      <b>Valor por pessoa:</b> {useFormat(valorPorPessoa)}
                     </Typography>
                   )}
                 </>
               )}
               <Box
                 sx={{
-                  width: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
+                  width: "100%",
+                  display: "flex",
+                  flexDirection: "column",
                   gap: 1,
                   mt: 3,
                 }}
@@ -719,9 +729,7 @@ export const Tables = () => {
                 <Button
                   variant="contained"
                   color="success"
-                  onClick={() =>
-                    setShowCloseCommandModal(true)
-                  }
+                  onClick={() => setShowCloseCommandModal(true)}
                 >
                   Finalizar comanda
                 </Button>
@@ -738,45 +746,39 @@ export const Tables = () => {
         <Box
           p={2}
           sx={{
-            width: '75%',
-            maxWidth: '500px',
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            bgcolor: 'white',
+            width: "75%",
+            maxWidth: "500px",
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            bgcolor: "white",
           }}
         >
           {dadosPedidoMesa && (
             <>
               <Typography>
-                <b>Garçom:</b>{' '}
-                {dadosPedidoMesa.UsuarioQueIniciouOPedido}
+                <b>Garçom:</b> {dadosPedidoMesa.UsuarioQueIniciouOPedido}
               </Typography>
               <Typography>
-                <b>Chegada:</b>{' '}
-                {dadosPedidoMesa.dataHoraPedido}
+                <b>Chegada:</b> {dadosPedidoMesa.dataHoraPedido}
               </Typography>
               <Typography
                 sx={{
-                  display: 'flex',
-                  alignItems: 'center',
+                  display: "flex",
+                  alignItems: "center",
                 }}
               >
-                <b>Pessoas: </b>{' '}
+                <b>Pessoas: </b>{" "}
                 {editPeopleCount ? (
                   <>
                     <Input
-                      sx={{ width: '2rem' }}
-                      value={
-                        dadosPedidoMesa.quantidadeDePessoasNaMesa ??
-                        ''
-                      }
+                      sx={{ width: "2rem" }}
+                      value={dadosPedidoMesa.quantidadeDePessoasNaMesa ?? ""}
                       onChange={(e) =>
                         setDadosPedidoMesa({
                           ...dadosPedidoMesa,
-                          quantidadeDePessoasNaMesa:
-                            e.target.value,
+                          quantidadeDePessoasNaMesa: e.target.value,
                         })
                       }
                     />
@@ -785,11 +787,11 @@ export const Tables = () => {
                       variant="contained"
                       color="primary"
                       sx={{
-                        display: 'flex',
-                        alignItems: 'center',
+                        display: "flex",
+                        alignItems: "center",
                         ml: 1,
-                        width: '6rem',
-                        height: '1.5rem',
+                        width: "6rem",
+                        height: "1.5rem",
                       }}
                       s
                       onClick={() => {
@@ -801,62 +803,52 @@ export const Tables = () => {
                   </>
                 ) : (
                   <>
-                    {dadosPedidoMesa?.quantidadeDePessoasNaMesa ??
-                      'N/A'}
+                    {dadosPedidoMesa?.quantidadeDePessoasNaMesa ?? "N/A"}
                     <EditIcon
                       variant="outlined"
                       color="primary"
                       sx={{
-                        display: 'flex',
-                        alignItems: 'center',
+                        display: "flex",
+                        alignItems: "center",
                         ml: 1,
-                        width: '1rem',
-                        height: '1.2rem',
-                        padding: '0',
-                        minWidth: '30px',
-                        cursor: 'pointer',
+                        width: "1rem",
+                        height: "1.2rem",
+                        padding: "0",
+                        minWidth: "30px",
+                        cursor: "pointer",
                       }}
                       startIcon={<EditIcon />}
-                      onClick={() =>
-                        handleEditPeopleCount()
-                      }
+                      onClick={() => handleEditPeopleCount()}
                     />
                   </>
                 )}
               </Typography>
               <Box
                 sx={{
-                  display: 'flex',
-                  flexDirection: 'row-reverse',
-                  alignItems: 'start',
-                  justifyContent: 'space-between',
+                  display: "flex",
+                  flexDirection: "row-reverse",
+                  alignItems: "start",
+                  justifyContent: "space-between",
                 }}
               >
                 <Typography>
-                  <b>Valor total:</b>{' '}
+                  <b>Valor total:</b>{" "}
                   {useFormat(
-                    dadosPedidoMesa.Pedido.reduce(
-                      (total, item) => {
-                        return (
-                          total +
-                          Number(item.item.valor) +
-                          Number(item.Valoropcional) +
-                          calcularSomaValoresAdicionais(
-                            item.adicional
-                          )
-                        );
-                      },
-                      0
-                    ) * (switchChecked ? 1.1 : 1)
+                    dadosPedidoMesa.Pedido.reduce((total, item) => {
+                      return (
+                        total +
+                        Number(item.item.valor) +
+                        Number(item.Valoropcional) +
+                        calcularSomaValoresAdicionais(item.adicional)
+                      );
+                    }, 0) * (switchChecked ? 1.1 : 1)
                   )}
                 </Typography>
                 <FormControlLabel
                   control={
                     <Switch
                       checked={switchChecked}
-                      onChange={(e) =>
-                        setSwitchChecked(e.target.checked)
-                      }
+                      onChange={(e) => setSwitchChecked(e.target.checked)}
                     />
                   }
                   label="Aplicar 10%"
@@ -864,26 +856,24 @@ export const Tables = () => {
               </Box>
               <Box
                 sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "space-between",
                   gap: 1,
                 }}
               >
-                {' '}
+                {" "}
                 <Button
-                  sx={{ width: '100%' }}
+                  sx={{ width: "100%" }}
                   variant="contained"
                   color="primary"
-                  onClick={() =>
-                    imprimirPedidoModal(dadosPedidoMesa)
-                  }
+                  onClick={() => imprimirPedidoModal(dadosPedidoMesa)}
                 >
                   Imprimir Pedido
                 </Button>
                 <Button
-                  sx={{ width: '100%' }}
+                  sx={{ width: "100%" }}
                   variant="contained"
                   color="success"
                   onClick={() => {
@@ -898,30 +888,29 @@ export const Tables = () => {
           {showAdditionalInfo && (
             <Box
               sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                flexWrap: 'wrap',
-                alignItems: 'start',
-                justifyContent: 'space-between',
+                display: "flex",
+                flexDirection: "column",
+                flexWrap: "wrap",
+                alignItems: "start",
+                justifyContent: "space-between",
                 gap: 1,
-                borderTop: '1px black solid',
+                borderTop: "1px black solid",
                 mt: 1,
               }}
             >
-              <Typography sx={{ color: 'red' }}>
-                Feche a mesa somente após o recebimento do
-                pagamento
+              <Typography sx={{ color: "red" }}>
+                Feche a mesa somente após o recebimento do pagamento
               </Typography>
               <Button
                 variant="contained"
                 color="success"
                 onClick={handleRecebeuPagamento}
-                sx={{ mt: 1, width: '100%' }}
+                sx={{ mt: 1, width: "100%" }}
               >
                 Recebi Pagamento
               </Button>
               <Button
-                sx={{ width: '100%' }}
+                sx={{ width: "100%" }}
                 variant="contained"
                 color="error"
                 onClick={handleNaoRecebeuPagamento}
