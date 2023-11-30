@@ -241,6 +241,23 @@ export default function ListCart() {
                           width: "100%",
                         }}
                       >
+                        {" "}
+                        <Typography
+                          sx={{
+                            width: "100%",
+                            display: "flex",
+                            flexDirection: "row",
+                          }}
+                          variant="body2"
+                          gutterBottom
+                        >
+                          <em>
+                            <b>Valor(a):</b>
+                          </em>
+                          <p style={{ paddingLeft: "5px" }}>
+                            {useFormat(item.valor)}
+                          </p>
+                        </Typography>
                         {item.refrigeranteDoCombo === "" || undefined ? (
                           <Box></Box>
                         ) : (
@@ -261,7 +278,6 @@ export default function ListCart() {
                             </p>
                           </Typography>
                         )}
-
                         {item.opcionalSelecionado === "" || undefined ? (
                           <Box></Box>
                         ) : (
@@ -306,25 +322,23 @@ export default function ListCart() {
                                   null ||
                                   undefined ||
                                   "" ? (
-                                    <>
-                                      <Typography
-                                        sx={{
-                                          width: "100%",
-                                          display: "flex",
-                                          flexDirection: "row",
-                                        }}
-                                        variant="body2"
-                                        gutterBottom
-                                        key={item.id}
-                                      >
-                                        <em>
-                                          <b>Valor do opcional:</b>
-                                        </em>{" "}
-                                        <p style={{ paddingLeft: "0.6rem" }}>
-                                          Grátis
-                                        </p>
-                                      </Typography>
-                                    </>
+                                    <Typography
+                                      sx={{
+                                        width: "100%",
+                                        display: "flex",
+                                        flexDirection: "row",
+                                      }}
+                                      variant="body2"
+                                      gutterBottom
+                                      key={item.id}
+                                    >
+                                      <em>
+                                        <b>Valor do opcional(b):</b>
+                                      </em>{" "}
+                                      <p style={{ paddingLeft: "0.6rem" }}>
+                                        Grátis
+                                      </p>
+                                    </Typography>
                                   ) : (
                                     <>
                                       <Typography
@@ -338,7 +352,7 @@ export default function ListCart() {
                                         key={item.id}
                                       >
                                         <em>
-                                          <b>Valor do opcional:</b>
+                                          <b>Valor do opcional(b):</b>
                                         </em>{" "}
                                         <p style={{ paddingLeft: "0.5rem" }}>
                                           {useFormat(item.valorOpcional)}
@@ -351,7 +365,6 @@ export default function ListCart() {
                             </Typography>
                           </>
                         )}
-
                         {item.adicionais && item.adicionais.length > 0 && (
                           <Box>
                             {item.adicionais === "" || undefined ? (
@@ -400,7 +413,7 @@ export default function ListCart() {
                             gutterBottom
                           >
                             <em>
-                              <b>Valor Adicionais:</b>
+                              <b>Valor Adicionais(c):</b>
                             </em>
                             <p style={{ paddingLeft: "5px" }}>
                               {useFormat(item.valorTotalAdicionais)}
@@ -438,9 +451,36 @@ export default function ListCart() {
                         borderTop: "2px dotted",
                       }}
                     >
-                      <Typography variant="h6">
-                        {useFormat(item.valorTotalDoProduto)}
-                      </Typography>
+                      {item.ingredientes &&
+                      item.ingredientes.toLowerCase().includes("bebida") ? (
+                        <Typography variant="body2" gutterBottom>
+                          <em>
+                            <b>Valor(a):</b>
+                          </em>
+                          <Typography variant="h6">
+                            {useFormat(item.valorTotalDoProduto)}
+                          </Typography>
+                        </Typography>
+                      ) : item.valorTotalAdicionais === 0 ||
+                        item.valorTotalAdicionais === undefined ? (
+                        <Typography variant="body2" gutterBottom>
+                          <em>
+                            <b>Valor(a)+(b):</b>
+                          </em>
+                          <Typography variant="h6">
+                            {useFormat(item.valorTotalDoProduto)}
+                          </Typography>
+                        </Typography>
+                      ) : (
+                        <Typography variant="body2" gutterBottom>
+                          <em>
+                            <b>Valor(a)+(b)+(c):</b>
+                          </em>
+                          <Typography variant="h6">
+                            {useFormat(item.valorTotalDoProduto)}
+                          </Typography>
+                        </Typography>
+                      )}
                       <Box
                         sx={{
                           display: "flex",
