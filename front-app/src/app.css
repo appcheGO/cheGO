@@ -32,6 +32,9 @@
   height: 67%;
   overflow: hidden !important;
 }
+.backgroundAdmin{
+  background-color: #ECEDEE;
+}
 
 #footer {
   border-radius: 35px;

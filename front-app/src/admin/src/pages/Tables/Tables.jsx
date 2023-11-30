@@ -354,13 +354,14 @@ export const Tables = () => {
   };
   return (
     <Box
+    className="backgroundAdmin"
       sx={{
         width: '100%',
         height: '100dvh',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        mt: 10,
+       
       }}
     >
       <Header />
