@@ -5,7 +5,7 @@ import Logo from "@mui/material/Avatar";
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 import InfoIcon from "@mui/icons-material/Info";
 import { useCarrinho } from "../../context/useCarrinho";
-
+import Img from "../../../public/logo-Dona-do-Sabor.png"
 import "./header.css";
 import {
   Typography,
@@ -19,12 +19,10 @@ import {
 } from "@mui/material";
 
 export default function Header() {
-  const { openingHours, handleCloseAlert, isAlertOpen } = useCarrinho();
+  const {  handleCloseAlert, isAlertOpen } = useCarrinho();
   const [isModalOpen, setIsModalOpen] = React.useState(false);
 
-  const imagem =
-    "https://img.freepik.com/vetores-premium/modelo-de-logo-de-taco-logotipo-de-emblema-de-comida-de-taco_664675-608.jpg";
-  openingHours(); 
+ 
 
   return (
     <React.Fragment>
@@ -48,7 +46,7 @@ export default function Header() {
         }}
       >
         <Box id="teste">
-          <Logo id="imglogo" alt="Remy Sharp" src={imagem} />
+          <Logo id="imglogo" alt="Remy Sharp" src={Img} />
 
           <Box
             sx={{
@@ -57,7 +55,7 @@ export default function Header() {
               color: " #29292c",
             }}
           >
-            <h2>Taco Tex-Mex</h2>
+            <h2>Dona do Sabor</h2>
 
             <Typography
               sx={{
@@ -72,7 +70,7 @@ export default function Header() {
                   alignItems: "center",
                 }}
               >
-                {<WhatsAppIcon />}85 998767654
+                {<WhatsAppIcon />}85 987206514
               </Box>
               <Box
                 sx={{
