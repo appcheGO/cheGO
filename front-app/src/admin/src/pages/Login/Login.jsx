@@ -1,148 +1,209 @@
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
 
-import Box from '@mui/material/Box';
-import Card from '@mui/material/Card';
-import Stack from '@mui/material/Stack';
-import Button from '@mui/material/Button';
-import Container from '@mui/material/Container';
+import {
+  Button,
+  Container,
+  Grid,
+  TextField,
+  Typography,
+} from '@mui/material';
 
-import TextField from '@mui/material/TextField';
-import Typography from '@mui/material/Typography';
-import IconButton from '@mui/material/IconButton';
-import { alpha, useTheme } from '@mui/material/styles';
-import InputAdornment from '@mui/material/InputAdornment';
-import { bgGradient } from '../../theme/css';
-import Iconify from '../../components/iconify';
 import {
   getAuth,
   signInWithEmailAndPassword,
 } from 'firebase/auth';
 
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import app from '../../../../Firebase/firebase';
+import * as yup from 'yup';
+import { yupResolver } from '@hookform/resolvers/yup';
 
-const auth = getAuth(app);
+const schema = yup
+  .object({
+    email: yup
+      .string()
+      .required('Email é obrigatório')
+      .email('Email inválido'),
+    password: yup.string().required('Senha é obrigatória'),
+  })
+  .required();
 
 export default function Login() {
-  const theme = useTheme();
-  const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-
+  const auth = getAuth(app);
+  const [apiError, setApiError] = useState('');
   const navigate = useNavigate();
 
-  const handleLogin = async () => {
-    try {
-      await signInWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: yupResolver(schema),
+  });
 
+  const onSubmit = async (data) => {
+    const { email, password } = data;
+    // const auth = getAuth();
+
+    try {
+      const userCredential =
+        await signInWithEmailAndPassword(
+          auth,
+          email,
+          password
+        );
+      const user = userCredential.user;
       navigate('/admin/dashboard');
+      console.log(user, 'user');
     } catch (error) {
-      console.error('Erro de autenticação:', error);
+      console.error(error);
+      setApiError(
+        'Erro ao fazer login. Verifique suas credenciais.'
+      );
     }
   };
 
-  const renderForm = (
-    <>
-      <Stack spacing={3}>
-        <TextField
-          sx={{
-            '& div:first-of-type': {
-              height: 'auto !important',
-            },
-          }}
-          name="email"
-          label="Email "
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-
-        <TextField
-          name="password"
-          label="Password"
-          type={showPassword ? 'text' : 'password'}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="end">
-                <IconButton
-                  onClick={() =>
-                    setShowPassword(!showPassword)
-                  }
-                  edge="end"
-                >
-                  <Iconify
-                    icon={
-                      showPassword
-                        ? 'eva:eye-fill'
-                        : 'eva:eye-off-fill'
-                    }
-                  />
-                </IconButton>
-              </InputAdornment>
-            ),
-          }}
-        />
-      </Stack>
-
-      <Button
-        fullWidth
-        size="large"
-        type="submit"
-        variant="contained"
-        onClick={handleLogin}
-        sx={{ mt: 2 }}
-      >
-        Login
-      </Button>
-    </>
-  );
-
   return (
-    <Container sx={{ height: '100vh' }}>
-      <Box
+    <Container
+      sx={{
+        backgroundColor: '#fff',
+        display: 'flex',
+        alignItems: 'center',
+      }}
+    >
+      <Grid
+        container
         sx={{
-          ...bgGradient({
-            color: alpha(
-              theme.palette.background.default,
-              0.9
-            ),
-            imgUrl: '/assets/background/overlay_4.jpg',
-          }),
-          height: 1,
-          display: 'flex',
-          justifyContent: 'center',
+          alignItems: 'center',
+          flexDirection: 'column',
         }}
       >
-        <Stack
-          alignItems="center"
-          justifyContent="center"
-          sx={{ height: 1, width: '90%' }}
+        <Grid
+          item
+          xs={12}
+          sx={{
+            display: 'flex',
+
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
         >
-          <Card
-            className="box-shadow"
+          <Typography
             sx={{
-              p: 5,
-              width: 1,
-              maxWidth: 420,
-              backgroundColor: '#fae9de',
+              color: '#f46c26',
+              fontSize: '22px',
+              fontWeight: 600,
             }}
           >
-            <Typography
-              variant="h4"
-              sx={{ textAlign: 'center', mb: 2 }}
-            >
-              Login
-            </Typography>
+            Painel Admin
+          </Typography>
+        </Grid>
+        <Grid
+          item
+          xs={12}
+          sx={{
+            height: '100px',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <Typography
+            sx={{
+              color: '#f46c26',
+              fontSize: '32px',
+              fontWeight: 600,
+            }}
+          >
+            Login
+          </Typography>
+        </Grid>
 
-            {renderForm}
-          </Card>
-        </Stack>
-      </Box>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <Grid
+            item
+            xs={12}
+            sx={{
+              display: 'grid',
+              gap: '50px',
+              p: '0 20px 0 20px',
+            }}
+          >
+            <TextField
+              type="email"
+              label="Email"
+              variant="standard"
+              {...register('email')}
+              error={!!errors.email}
+              helperText={errors.email?.message}
+            />
+            <TextField
+              type="password"
+              label="Senha"
+              variant="standard"
+              {...register('password')}
+              error={!!errors.password}
+              helperText={errors.password?.message}
+            />
+          </Grid>
+          <Grid
+            container
+            width="100%"
+            sx={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              mt: '10px',
+            }}
+          >
+            <Grid item xs={6}>
+              <Typography
+                sx={{
+                  textAlign: 'center',
+                }}
+              >
+                <Link
+                  to="#"
+                  style={{ textDecoration: 'none' }}
+                >
+                  Esqueceu a senha?
+                </Link>
+              </Typography>
+            </Grid>
+            <Grid
+              item
+              xs={12}
+              sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                mt: '50px',
+              }}
+            >
+              <Button
+                type="submit"
+                variant="contained"
+                sx={{
+                  width: '200px',
+                  height: '50px',
+                  borderRadius: '10px',
+                  cursor: 'pointer',
+                }}
+              >
+                Entrar
+              </Button>
+            </Grid>
+          </Grid>
+        </form>
+
+        {apiError && (
+          <Typography
+            color="error"
+            sx={{ textAlign: 'center', mt: 2 }}
+          >
+            {apiError}
+          </Typography>
+        )}
+      </Grid>
     </Container>
   );
 }
