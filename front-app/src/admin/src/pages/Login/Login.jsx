@@ -53,9 +53,9 @@ export default function Login() {
           email,
           password
         );
+      // eslint-disable-next-line no-unused-vars
       const user = userCredential.user;
       navigate('/admin/dashboard');
-      console.log(user, 'user');
     } catch (error) {
       console.error(error);
       setApiError(
