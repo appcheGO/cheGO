@@ -113,7 +113,7 @@ export const Tables = () => {
         dadosPedidoMesa.Pedido.reduce((total, item) => {
           return (
             total +
-            Number(item.item.valor) +
+            Number(item.valor) +
             Number(item.Valoropcional) +
             calcularSomaValoresAdicionais(item.adicional)
           );
@@ -123,7 +123,7 @@ export const Tables = () => {
         dadosPedidoMesa.Pedido.reduce((total, item) => {
           return (
             total +
-            Number(item.item.valor) +
+            Number(item.valor) +
             Number(item.Valoropcional) +
             calcularSomaValoresAdicionais(item.adicional)
           );
@@ -265,8 +265,8 @@ export const Tables = () => {
     ${Pedido.map(
       (item, index) => `
       Item ${index + 1}:
-      <br/>Sabor: ${item.item.sabor || "N/A"}
-      <br/>Valor (a): ${item.item.valor ? useFormat(item.item.valor) : "N/A"}
+      <br/>Sabor: ${item.sabor || "N/A"}
+      <br/>Valor (a): ${item.valor ? useFormat(item.valor) : "N/A"}
       <br/>Opcionais: ${item.opcionais || "N/A"}
       <br/>Valor do opcional (b): ${
         item.Valoropcional ? useFormat(item.Valoropcional) : "Gratis"
@@ -278,11 +278,11 @@ export const Tables = () => {
       Adicionais:
               ${item.adicional
                 .map(
-                  (adicionalItem, adicionalIndex) => `
+                  (adicionalItem) => `
                   <br/>
             ${adicionalItem.name} - (${adicionalItem.qtde}x) - ${useFormat(
-                    adicionalItem.qtde * adicionalItem.valor
-                  )}
+                    adicionalItem.valor
+                  )} - (${useFormat(adicionalItem.valor * adicionalItem.qtde)})
           `
                 )
                 .join("")}
@@ -294,18 +294,18 @@ export const Tables = () => {
   
       Observação: ${item.observacao || "Sem observação"}
       <br/>
-      Quantidade: ${item.item.quantidade}
+      Quantidade: ${item.quantidade}
       <br/>
       Valor total do item (a + b + c): ${useFormat(
         calcularSomaValoresAdicionais(item.adicional) +
-          Number(item.item.valor) +
+          Number(item.valor) +
           Number(item.Valoropcional)
       )}
       <br/>
       `
           : `
       Valor total do item (a + b): ${useFormat(
-        Number(item.item.valor) + Number(item.Valoropcional)
+        Number(item.valor) + Number(item.Valoropcional)
       )}
       <br/>
       `
@@ -428,22 +428,15 @@ export const Tables = () => {
                           label="Pedido"
                           onClick={() => handleOpenCommandWaiterModal(mesa)}
                         />
-                        <Chip
-                          sx={{
-                            width: "95%",
-                            background: "#1F2C38",
-                            color: "white",
-                          }}
-                          size="small"
-                          icon={<PeopleAltIcon style={{ color: "white" }} />}
-                          label={`${selectedMesaData[mesa]?.quantidadeDePessoasNaMesa} Pessoas`}
-                        />
+
                         <Chip
                           sx={{ width: "95%" }}
                           color="warning"
                           size="small"
                           icon={<AccessTimeIcon />}
-                          label={selectedMesaData[mesa]?.dataHoraPedido}
+                          label={selectedMesaData[mesa]?.data
+                            ?.toDate()
+                            .toLocaleString()}
                         />
                       </Box>
                     </>
@@ -489,17 +482,12 @@ export const Tables = () => {
                 <Typography>
                   <b>Pedido:</b> {dadosPedidoMesa.idPedido}
                 </Typography>
-                <Typography>
-                  <b>Garçom:</b> {dadosPedidoMesa.UsuarioQueIniciouOPedido}
-                </Typography>
-                <Typography>
-                  <b>Inicio do pedido:</b> {dadosPedidoMesa.dataHoraPedido}
-                </Typography>
 
                 <Typography>
-                  <b>Pessoas na mesa:</b>{" "}
-                  {dadosPedidoMesa.quantidadeDePessoasNaMesa}
+                  <b>Inicio do pedido:</b>{" "}
+                  {dadosPedidoMesa.data?.toDate().toLocaleString()}
                 </Typography>
+
                 <Box
                   sx={{
                     width: "100%",
@@ -516,13 +504,13 @@ export const Tables = () => {
                   {dadosPedidoMesa.Pedido.map((item, index) => (
                     <Box key={index}>
                       <Typography>
-                        <b>Item:</b> {item.item.sabor}
+                        <b>Item:</b> {item.sabor}
                       </Typography>
                       <Typography>
                         <b>
                           Valor <span style={{ fontSize: "0.7rem" }}>(a)</span>:{" "}
                         </b>
-                        {useFormat(item.item.valor)}
+                        {useFormat(item.valor)}
                       </Typography>
                       <Typography>
                         <b>Opcional: </b>
@@ -586,10 +574,7 @@ export const Tables = () => {
                                     >
                                       {adicionalItem.name} - (
                                       {adicionalItem.qtde}
-                                      x) -{" "}
-                                      {useFormat(
-                                        adicionalItem.qtde * adicionalItem.valor
-                                      )}
+                                      x) - {useFormat(adicionalItem.valor)}
                                     </li>
                                   </span>
                                 </Typography>
@@ -624,7 +609,7 @@ export const Tables = () => {
                       )}
                       <Typography>
                         <b>Quantidade: </b>
-                        {item.item.quantidade}
+                        {item.quantidade}
                       </Typography>
                       {item.adicional && item.adicional.length == 0 ? (
                         <Typography>
@@ -640,7 +625,7 @@ export const Tables = () => {
                             :
                           </b>
                           {useFormat(
-                            Number(item.item.valor) + Number(item.Valoropcional)
+                            Number(item.valor) + Number(item.Valoropcional)
                           )}
                         </Typography>
                       ) : (
@@ -657,7 +642,7 @@ export const Tables = () => {
                             :
                           </b>
                           {useFormat(
-                            Number(item.item.valor) +
+                            Number(item.valor) +
                               Number(item.Valoropcional) +
                               calcularSomaValoresAdicionais(item.adicional)
                           )}
@@ -698,15 +683,7 @@ export const Tables = () => {
                         <b>Valor total com 10%:</b>{" "}
                         {useFormat(totalSem10Percent * 1.1)}
                       </Typography>
-                      <Typography>
-                        <b>Valor por pessoa:</b> {useFormat(valorPorPessoa)}
-                      </Typography>
                     </>
-                  )}
-                  {!switchChecked && (
-                    <Typography>
-                      <b>Valor por pessoa:</b> {useFormat(valorPorPessoa)}
-                    </Typography>
                   )}
                 </>
               )}
@@ -758,71 +735,10 @@ export const Tables = () => {
           {dadosPedidoMesa && (
             <>
               <Typography>
-                <b>Garçom:</b> {dadosPedidoMesa.UsuarioQueIniciouOPedido}
+                <b>Chegada:</b>{" "}
+                {dadosPedidoMesa.data?.toDate().toLocaleString()}
               </Typography>
-              <Typography>
-                <b>Chegada:</b> {dadosPedidoMesa.dataHoraPedido}
-              </Typography>
-              <Typography
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                }}
-              >
-                <b>Pessoas: </b>{" "}
-                {editPeopleCount ? (
-                  <>
-                    <Input
-                      sx={{ width: "2rem" }}
-                      value={dadosPedidoMesa.quantidadeDePessoasNaMesa ?? ""}
-                      onChange={(e) =>
-                        setDadosPedidoMesa({
-                          ...dadosPedidoMesa,
-                          quantidadeDePessoasNaMesa: e.target.value,
-                        })
-                      }
-                    />
 
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        ml: 1,
-                        width: "6rem",
-                        height: "1.5rem",
-                      }}
-                      s
-                      onClick={() => {
-                        setEditPeopleCount(false);
-                      }}
-                    >
-                      Salvar
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    {dadosPedidoMesa?.quantidadeDePessoasNaMesa ?? "N/A"}
-                    <EditIcon
-                      variant="outlined"
-                      color="primary"
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        ml: 1,
-                        width: "1rem",
-                        height: "1.2rem",
-                        padding: "0",
-                        minWidth: "30px",
-                        cursor: "pointer",
-                      }}
-                      startIcon={<EditIcon />}
-                      onClick={() => handleEditPeopleCount()}
-                    />
-                  </>
-                )}
-              </Typography>
               <Box
                 sx={{
                   display: "flex",
@@ -837,7 +753,7 @@ export const Tables = () => {
                     dadosPedidoMesa.Pedido.reduce((total, item) => {
                       return (
                         total +
-                        Number(item.item.valor) +
+                        Number(item.valor) +
                         Number(item.Valoropcional) +
                         calcularSomaValoresAdicionais(item.adicional)
                       );

@@ -56,7 +56,7 @@ export default function Header() {
     auth.signOut().then(
       () => {
         localStorage.clear();
-        navigate('/admin/login');
+        navigate('/admin');
         console.log('signed out');
       },
       (error) => {
