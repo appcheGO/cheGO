@@ -446,9 +446,9 @@ export const Tables = () => {
                           color="warning"
                           size="small"
                           icon={<AccessTimeIcon />}
-                          label={selectedMesaData[mesa]?.Data
-                            ?.toDate()
-                            .toLocaleString()}
+                          label={selectedMesaData[
+                            mesa
+                          ]?.Data?.toDate().toLocaleString()}
                         />
                       </Box>
                     </>
@@ -601,7 +601,11 @@ export const Tables = () => {
                                     >
                                       {adicionalItem.name} - (
                                       {adicionalItem.qtde}
-                                      x) - {useFormat(adicionalItem.valor)}
+                                      x) - {useFormat(adicionalItem.valor)} - (
+                                      {useFormat(
+                                        adicionalItem.qtde * adicionalItem.valor
+                                      )}
+                                      )
                                     </li>
                                   </span>
                                 </Typography>
