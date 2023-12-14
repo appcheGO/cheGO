@@ -446,7 +446,7 @@ export const Tables = () => {
                           color="warning"
                           size="small"
                           icon={<AccessTimeIcon />}
-                          label={selectedMesaData[mesa]?.data
+                          label={selectedMesaData[mesa]?.Data
                             ?.toDate()
                             .toLocaleString()}
                         />
