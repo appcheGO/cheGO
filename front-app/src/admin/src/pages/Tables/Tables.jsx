@@ -130,9 +130,7 @@ export const Tables = () => {
         }, 0)
       );
 
-      setValorPorPessoa(
-        totalCom10Percent / dadosPedidoMesa.quantidadeDePessoasNaMesa
-      );
+      setValorPorPessoa(totalCom10Percent / dadosPedidoMesa.QtdePessoasNaMesa);
     }
   }, [dadosPedidoMesa, switchChecked]);
 
@@ -175,7 +173,7 @@ export const Tables = () => {
       firestore,
       `PEDIDOS MESAS/MESA ${mesa}/STATUS`
     );
-    const consulta = query(statusCollectionRef, orderBy("idPedido", "asc"));
+    const consulta = query(statusCollectionRef, orderBy("idDoPedido", "asc"));
     const resultadoConsulta = await getDocs(consulta);
 
     const primeiroDocumento = resultadoConsulta.docs[0];
@@ -243,22 +241,20 @@ export const Tables = () => {
     }
   };
   const formatarDadosPedidoModal = (dadosPedidoMesa) => {
-    const {
-      idPedido,
-      UsuarioQueIniciouOPedido,
-      dataHoraPedido,
-      quantidadeDePessoasNaMesa,
-      Pedido,
-    } = dadosPedidoMesa;
+    const { idDoPedido, User, Data, QtdePessoasNaMesa, Pedido } =
+      dadosPedidoMesa;
 
     const conteudoFormatado = `
+    
       Mesa: ${selectedMesa}
       <br/>
-      Garçom: ${UsuarioQueIniciouOPedido}
+      Garçom: ${User}
       <br/>
-      Inicio do pedido: ${dataHoraPedido}
+      Comanda: ${idDoPedido}
       <br/>
-      Pessoas na mesa: ${quantidadeDePessoasNaMesa}
+      Inicio do pedido: ${Data?.toDate().toLocaleString()}
+      <br/>
+      Pessoas na mesa: ${QtdePessoasNaMesa}
       <br/>
     ---------------------------------------
       <br/>
@@ -266,11 +262,19 @@ export const Tables = () => {
       (item, index) => `
       Item ${index + 1}:
       <br/>Sabor: ${item.sabor || "N/A"}
-      <br/>Valor (a): ${item.valor ? useFormat(item.valor) : "N/A"}
-      <br/>Opcionais: ${item.opcionais || "N/A"}
-      <br/>Valor do opcional (b): ${
-        item.Valoropcional ? useFormat(item.Valoropcional) : "Gratis"
-      }<br/>
+      ${
+        item.ingredientes && item.ingredientes.includes("Bebida")
+          ? `<br/>Quantidade: ${item.quantidade}
+          <br/>Valor: ${item.valor ? useFormat(item.valor) : "N/A"}`
+          : `<br/>Valor (a): ${item.valor ? useFormat(item.valor) : "N/A"}
+          <br/>Opcionais: ${item.opcionais || "N/A"}
+          <br/>Valor do opcional (b): ${
+            item.Valoropcional ? useFormat(item.Valoropcional) : "Gratis"
+          }<br/>`
+      }
+      
+      
+     
       
       ${
         item.adicional && item.adicional.length > 0
@@ -304,10 +308,18 @@ export const Tables = () => {
       <br/>
       `
           : `
-      Valor total do item (a + b): ${useFormat(
-        Number(item.valor) + Number(item.Valoropcional)
-      )}
-      <br/>
+          ${
+            item.ingredientes && item.ingredientes.includes("Bebida")
+              ? ` <br/>Valor total do item : ${useFormat(
+                  Number(item.valor) + Number(item.Valoropcional)
+                )}
+          <br/>`
+              : ` Valor total do item (a + b): ${useFormat(
+                  Number(item.valor) + Number(item.Valoropcional)
+                )}
+          <br/>`
+          }
+     
       `
       }
      
@@ -480,12 +492,15 @@ export const Tables = () => {
             <>
               <Box>
                 <Typography>
-                  <b>Pedido:</b> {dadosPedidoMesa.idPedido}
+                  <b>Pedido:</b> {dadosPedidoMesa.idDoPedido}
                 </Typography>
 
                 <Typography>
                   <b>Inicio do pedido:</b>{" "}
-                  {dadosPedidoMesa.data?.toDate().toLocaleString()}
+                  {dadosPedidoMesa.Data?.toDate().toLocaleString()}
+                </Typography>
+                <Typography>
+                  <b>Pessoas na Mesa:</b> {dadosPedidoMesa.QtdePessoasNaMesa}
                 </Typography>
 
                 <Box
@@ -506,46 +521,58 @@ export const Tables = () => {
                       <Typography>
                         <b>Item:</b> {item.sabor}
                       </Typography>
-                      <Typography>
-                        <b>
-                          Valor <span style={{ fontSize: "0.7rem" }}>(a)</span>:{" "}
-                        </b>
-                        {useFormat(item.valor)}
-                      </Typography>
-                      <Typography>
-                        <b>Opcional: </b>
-                        {item.opcionais}
-                      </Typography>
-                      {item.Valoropcional == "" ? (
+                      {item.ingredientes &&
+                      item.ingredientes.includes("Bebida") ? (
                         <Typography>
-                          <b>
-                            Valor do opcional{" "}
-                            <span
-                              style={{
-                                fontSize: "0.7rem",
-                              }}
-                            >
-                              (b)
-                            </span>
-                            :
-                          </b>{" "}
-                          Gratis
+                          <b>Valor: </b>
+                          {useFormat(item.valor)}
                         </Typography>
                       ) : (
-                        <Typography>
-                          <b>
-                            Valor do opcional{" "}
-                            <span
-                              style={{
-                                fontSize: "0.7rem",
-                              }}
-                            >
-                              (b)
-                            </span>
-                            :{" "}
-                          </b>
-                          {useFormat(item.Valoropcional)}
-                        </Typography>
+                        <>
+                          {" "}
+                          <Typography>
+                            <b>
+                              Valor{" "}
+                              <span style={{ fontSize: "0.7rem" }}>(a)</span>:{" "}
+                            </b>
+                            {useFormat(item.valor)}
+                          </Typography>
+                          <Typography>
+                            <b>Opcional: </b>
+                            {item.opcionais}
+                          </Typography>
+                          {item.Valoropcional == "" ? (
+                            <Typography>
+                              <b>
+                                Valor do opcional{" "}
+                                <span
+                                  style={{
+                                    fontSize: "0.7rem",
+                                  }}
+                                >
+                                  (b)
+                                </span>
+                                :
+                              </b>{" "}
+                              Gratis
+                            </Typography>
+                          ) : (
+                            <Typography>
+                              <b>
+                                Valor do opcional{" "}
+                                <span
+                                  style={{
+                                    fontSize: "0.7rem",
+                                  }}
+                                >
+                                  (b)
+                                </span>
+                                :{" "}
+                              </b>
+                              {useFormat(item.Valoropcional)}
+                            </Typography>
+                          )}
+                        </>
                       )}
                       {item.adicional == 0 ? (
                         <Box />
@@ -613,17 +640,31 @@ export const Tables = () => {
                       </Typography>
                       {item.adicional && item.adicional.length == 0 ? (
                         <Typography>
-                          <b>
-                            Valor total do item{" "}
-                            <span
-                              style={{
-                                fontSize: "0.7rem",
-                              }}
-                            >
-                              (a)+(b)
-                            </span>
-                            :
-                          </b>
+                          {item.ingredientes &&
+                          item.ingredientes.includes("Bebida") ? (
+                            <b>
+                              Valor total do item{" "}
+                              <span
+                                style={{
+                                  fontSize: "0.7rem",
+                                }}
+                              ></span>
+                              :
+                            </b>
+                          ) : (
+                            <b>
+                              Valor total do item{" "}
+                              <span
+                                style={{
+                                  fontSize: "0.7rem",
+                                }}
+                              >
+                                (a)+(b)
+                              </span>
+                              :
+                            </b>
+                          )}
+
                           {useFormat(
                             Number(item.valor) + Number(item.Valoropcional)
                           )}
@@ -683,7 +724,15 @@ export const Tables = () => {
                         <b>Valor total com 10%:</b>{" "}
                         {useFormat(totalSem10Percent * 1.1)}
                       </Typography>
+                      <Typography>
+                        <b>Valor por pessoa:</b> {useFormat(valorPorPessoa)}
+                      </Typography>
                     </>
+                  )}
+                  {!switchChecked && (
+                    <Typography>
+                      <b>Valor por pessoa:</b> {useFormat(valorPorPessoa)}
+                    </Typography>
                   )}
                 </>
               )}
@@ -736,9 +785,71 @@ export const Tables = () => {
             <>
               <Typography>
                 <b>Chegada:</b>{" "}
-                {dadosPedidoMesa.data?.toDate().toLocaleString()}
+                {dadosPedidoMesa.Data?.toDate().toLocaleString()}
               </Typography>
+              <Typography
+                sx={{
+                  display: "flex",
+                  flexDirection: "row",
+                  borderBottom: "1px black solid",
+                  alignItems: "center",
+                  gap: 1,
+                }}
+              >
+                <b>Pessoas: </b>{" "}
+                {editPeopleCount ? (
+                  <>
+                    <Input
+                      sx={{ width: "2rem" }}
+                      value={dadosPedidoMesa.QtdePessoasNaMesa ?? ""}
+                      onChange={(e) =>
+                        setDadosPedidoMesa({
+                          ...dadosPedidoMesa,
+                          QtdePessoasNaMesa: e.target.value,
+                        })
+                      }
+                    />
 
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        ml: 1,
+                        width: "6rem",
+                        height: "1.5rem",
+                      }}
+                      onClick={() => {
+                        setEditPeopleCount(false);
+                      }}
+                    >
+                      Salvar
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    {dadosPedidoMesa?.QtdePessoasNaMesa ?? "N/A"}
+                    <EditIcon
+                      titleAccess="Editar"
+                      variant="outlined"
+                      color="primary"
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        ml: 1,
+                        width: "1rem",
+                        height: "1.2rem",
+                        padding: "0",
+                        minWidth: "30px",
+                        cursor: "pointer",
+                      }}
+                      startIcon={<EditIcon />}
+                      onClick={() => handleEditPeopleCount()}
+                    />
+                  </>
+                )}
+              </Typography>
               <Box
                 sx={{
                   display: "flex",
