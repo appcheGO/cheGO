@@ -113,7 +113,7 @@ export const Tables = () => {
         dadosPedidoMesa.Pedido.reduce((total, item) => {
           return (
             total +
-            Number(item.item.valor) +
+            Number(item.valor) +
             Number(item.Valoropcional) +
             calcularSomaValoresAdicionais(item.adicional)
           );
@@ -123,16 +123,14 @@ export const Tables = () => {
         dadosPedidoMesa.Pedido.reduce((total, item) => {
           return (
             total +
-            Number(item.item.valor) +
+            Number(item.valor) +
             Number(item.Valoropcional) +
             calcularSomaValoresAdicionais(item.adicional)
           );
         }, 0)
       );
 
-      setValorPorPessoa(
-        totalCom10Percent / dadosPedidoMesa.quantidadeDePessoasNaMesa
-      );
+      setValorPorPessoa(totalCom10Percent / dadosPedidoMesa.QtdePessoasNaMesa);
     }
   }, [dadosPedidoMesa, switchChecked]);
 
@@ -175,7 +173,7 @@ export const Tables = () => {
       firestore,
       `PEDIDOS MESAS/MESA ${mesa}/STATUS`
     );
-    const consulta = query(statusCollectionRef, orderBy("idPedido", "asc"));
+    const consulta = query(statusCollectionRef, orderBy("idDoPedido", "asc"));
     const resultadoConsulta = await getDocs(consulta);
 
     const primeiroDocumento = resultadoConsulta.docs[0];
@@ -243,34 +241,40 @@ export const Tables = () => {
     }
   };
   const formatarDadosPedidoModal = (dadosPedidoMesa) => {
-    const {
-      idPedido,
-      UsuarioQueIniciouOPedido,
-      dataHoraPedido,
-      quantidadeDePessoasNaMesa,
-      Pedido,
-    } = dadosPedidoMesa;
+    const { idDoPedido, User, Data, QtdePessoasNaMesa, Pedido } =
+      dadosPedidoMesa;
 
     const conteudoFormatado = `
+    
       Mesa: ${selectedMesa}
       <br/>
-      Garçom: ${UsuarioQueIniciouOPedido}
+      Garçom: ${User}
       <br/>
-      Inicio do pedido: ${dataHoraPedido}
+      Comanda: ${idDoPedido}
       <br/>
-      Pessoas na mesa: ${quantidadeDePessoasNaMesa}
+      Inicio do pedido: ${Data?.toDate().toLocaleString()}
+      <br/>
+      Pessoas na mesa: ${QtdePessoasNaMesa}
       <br/>
     ---------------------------------------
       <br/>
     ${Pedido.map(
       (item, index) => `
       Item ${index + 1}:
-      <br/>Sabor: ${item.item.sabor || "N/A"}
-      <br/>Valor (a): ${item.item.valor ? useFormat(item.item.valor) : "N/A"}
-      <br/>Opcionais: ${item.opcionais || "N/A"}
-      <br/>Valor do opcional (b): ${
-        item.Valoropcional ? useFormat(item.Valoropcional) : "Gratis"
-      }<br/>
+      <br/>Sabor: ${item.sabor || "N/A"}
+      ${
+        item.ingredientes && item.ingredientes.includes("Bebida")
+          ? `<br/>Quantidade: ${item.quantidade}
+          <br/>Valor: ${item.valor ? useFormat(item.valor) : "N/A"}`
+          : `<br/>Valor (a): ${item.valor ? useFormat(item.valor) : "N/A"}
+          <br/>Opcionais: ${item.opcionais || "N/A"}
+          <br/>Valor do opcional (b): ${
+            item.Valoropcional ? useFormat(item.Valoropcional) : "Gratis"
+          }<br/>`
+      }
+      
+      
+     
       
       ${
         item.adicional && item.adicional.length > 0
@@ -278,11 +282,11 @@ export const Tables = () => {
       Adicionais:
               ${item.adicional
                 .map(
-                  (adicionalItem, adicionalIndex) => `
+                  (adicionalItem) => `
                   <br/>
             ${adicionalItem.name} - (${adicionalItem.qtde}x) - ${useFormat(
-                    adicionalItem.qtde * adicionalItem.valor
-                  )}
+                    adicionalItem.valor
+                  )} - (${useFormat(adicionalItem.valor * adicionalItem.qtde)})
           `
                 )
                 .join("")}
@@ -294,20 +298,28 @@ export const Tables = () => {
   
       Observação: ${item.observacao || "Sem observação"}
       <br/>
-      Quantidade: ${item.item.quantidade}
+      Quantidade: ${item.quantidade}
       <br/>
       Valor total do item (a + b + c): ${useFormat(
         calcularSomaValoresAdicionais(item.adicional) +
-          Number(item.item.valor) +
+          Number(item.valor) +
           Number(item.Valoropcional)
       )}
       <br/>
       `
           : `
-      Valor total do item (a + b): ${useFormat(
-        Number(item.item.valor) + Number(item.Valoropcional)
-      )}
-      <br/>
+          ${
+            item.ingredientes && item.ingredientes.includes("Bebida")
+              ? ` <br/>Valor total do item : ${useFormat(
+                  Number(item.valor) + Number(item.Valoropcional)
+                )}
+          <br/>`
+              : ` Valor total do item (a + b): ${useFormat(
+                  Number(item.valor) + Number(item.Valoropcional)
+                )}
+          <br/>`
+          }
+     
       `
       }
      
@@ -428,22 +440,15 @@ export const Tables = () => {
                           label="Pedido"
                           onClick={() => handleOpenCommandWaiterModal(mesa)}
                         />
-                        <Chip
-                          sx={{
-                            width: "95%",
-                            background: "#1F2C38",
-                            color: "white",
-                          }}
-                          size="small"
-                          icon={<PeopleAltIcon style={{ color: "white" }} />}
-                          label={`${selectedMesaData[mesa]?.quantidadeDePessoasNaMesa} Pessoas`}
-                        />
+
                         <Chip
                           sx={{ width: "95%" }}
                           color="warning"
                           size="small"
                           icon={<AccessTimeIcon />}
-                          label={selectedMesaData[mesa]?.dataHoraPedido}
+                          label={selectedMesaData[
+                            mesa
+                          ]?.Data?.toDate().toLocaleString()}
                         />
                       </Box>
                     </>
@@ -487,19 +492,17 @@ export const Tables = () => {
             <>
               <Box>
                 <Typography>
-                  <b>Pedido:</b> {dadosPedidoMesa.idPedido}
-                </Typography>
-                <Typography>
-                  <b>Garçom:</b> {dadosPedidoMesa.UsuarioQueIniciouOPedido}
-                </Typography>
-                <Typography>
-                  <b>Inicio do pedido:</b> {dadosPedidoMesa.dataHoraPedido}
+                  <b>Pedido:</b> {dadosPedidoMesa.idDoPedido}
                 </Typography>
 
                 <Typography>
-                  <b>Pessoas na mesa:</b>{" "}
-                  {dadosPedidoMesa.quantidadeDePessoasNaMesa}
+                  <b>Inicio do pedido:</b>{" "}
+                  {dadosPedidoMesa.Data?.toDate().toLocaleString()}
                 </Typography>
+                <Typography>
+                  <b>Pessoas na Mesa:</b> {dadosPedidoMesa.QtdePessoasNaMesa}
+                </Typography>
+
                 <Box
                   sx={{
                     width: "100%",
@@ -516,48 +519,60 @@ export const Tables = () => {
                   {dadosPedidoMesa.Pedido.map((item, index) => (
                     <Box key={index}>
                       <Typography>
-                        <b>Item:</b> {item.item.sabor}
+                        <b>Item:</b> {item.sabor}
                       </Typography>
-                      <Typography>
-                        <b>
-                          Valor <span style={{ fontSize: "0.7rem" }}>(a)</span>:{" "}
-                        </b>
-                        {useFormat(item.item.valor)}
-                      </Typography>
-                      <Typography>
-                        <b>Opcional: </b>
-                        {item.opcionais}
-                      </Typography>
-                      {item.Valoropcional == "" ? (
+                      {item.ingredientes &&
+                      item.ingredientes.includes("Bebida") ? (
                         <Typography>
-                          <b>
-                            Valor do opcional{" "}
-                            <span
-                              style={{
-                                fontSize: "0.7rem",
-                              }}
-                            >
-                              (b)
-                            </span>
-                            :
-                          </b>{" "}
-                          Gratis
+                          <b>Valor: </b>
+                          {useFormat(item.valor)}
                         </Typography>
                       ) : (
-                        <Typography>
-                          <b>
-                            Valor do opcional{" "}
-                            <span
-                              style={{
-                                fontSize: "0.7rem",
-                              }}
-                            >
-                              (b)
-                            </span>
-                            :{" "}
-                          </b>
-                          {useFormat(item.Valoropcional)}
-                        </Typography>
+                        <>
+                          {" "}
+                          <Typography>
+                            <b>
+                              Valor{" "}
+                              <span style={{ fontSize: "0.7rem" }}>(a)</span>:{" "}
+                            </b>
+                            {useFormat(item.valor)}
+                          </Typography>
+                          <Typography>
+                            <b>Opcional: </b>
+                            {item.opcionais}
+                          </Typography>
+                          {item.Valoropcional == "" ? (
+                            <Typography>
+                              <b>
+                                Valor do opcional{" "}
+                                <span
+                                  style={{
+                                    fontSize: "0.7rem",
+                                  }}
+                                >
+                                  (b)
+                                </span>
+                                :
+                              </b>{" "}
+                              Gratis
+                            </Typography>
+                          ) : (
+                            <Typography>
+                              <b>
+                                Valor do opcional{" "}
+                                <span
+                                  style={{
+                                    fontSize: "0.7rem",
+                                  }}
+                                >
+                                  (b)
+                                </span>
+                                :{" "}
+                              </b>
+                              {useFormat(item.Valoropcional)}
+                            </Typography>
+                          )}
+                        </>
                       )}
                       {item.adicional == 0 ? (
                         <Box />
@@ -586,10 +601,11 @@ export const Tables = () => {
                                     >
                                       {adicionalItem.name} - (
                                       {adicionalItem.qtde}
-                                      x) -{" "}
+                                      x) - {useFormat(adicionalItem.valor)} - (
                                       {useFormat(
                                         adicionalItem.qtde * adicionalItem.valor
                                       )}
+                                      )
                                     </li>
                                   </span>
                                 </Typography>
@@ -624,23 +640,37 @@ export const Tables = () => {
                       )}
                       <Typography>
                         <b>Quantidade: </b>
-                        {item.item.quantidade}
+                        {item.quantidade}
                       </Typography>
                       {item.adicional && item.adicional.length == 0 ? (
                         <Typography>
-                          <b>
-                            Valor total do item{" "}
-                            <span
-                              style={{
-                                fontSize: "0.7rem",
-                              }}
-                            >
-                              (a)+(b)
-                            </span>
-                            :
-                          </b>
+                          {item.ingredientes &&
+                          item.ingredientes.includes("Bebida") ? (
+                            <b>
+                              Valor total do item{" "}
+                              <span
+                                style={{
+                                  fontSize: "0.7rem",
+                                }}
+                              ></span>
+                              :
+                            </b>
+                          ) : (
+                            <b>
+                              Valor total do item{" "}
+                              <span
+                                style={{
+                                  fontSize: "0.7rem",
+                                }}
+                              >
+                                (a)+(b)
+                              </span>
+                              :
+                            </b>
+                          )}
+
                           {useFormat(
-                            Number(item.item.valor) + Number(item.Valoropcional)
+                            Number(item.valor) + Number(item.Valoropcional)
                           )}
                         </Typography>
                       ) : (
@@ -657,7 +687,7 @@ export const Tables = () => {
                             :
                           </b>
                           {useFormat(
-                            Number(item.item.valor) +
+                            Number(item.valor) +
                               Number(item.Valoropcional) +
                               calcularSomaValoresAdicionais(item.adicional)
                           )}
@@ -758,15 +788,16 @@ export const Tables = () => {
           {dadosPedidoMesa && (
             <>
               <Typography>
-                <b>Garçom:</b> {dadosPedidoMesa.UsuarioQueIniciouOPedido}
-              </Typography>
-              <Typography>
-                <b>Chegada:</b> {dadosPedidoMesa.dataHoraPedido}
+                <b>Chegada:</b>{" "}
+                {dadosPedidoMesa.Data?.toDate().toLocaleString()}
               </Typography>
               <Typography
                 sx={{
                   display: "flex",
+                  flexDirection: "row",
+                  borderBottom: "1px black solid",
                   alignItems: "center",
+                  gap: 1,
                 }}
               >
                 <b>Pessoas: </b>{" "}
@@ -774,11 +805,11 @@ export const Tables = () => {
                   <>
                     <Input
                       sx={{ width: "2rem" }}
-                      value={dadosPedidoMesa.quantidadeDePessoasNaMesa ?? ""}
+                      value={dadosPedidoMesa.QtdePessoasNaMesa ?? ""}
                       onChange={(e) =>
                         setDadosPedidoMesa({
                           ...dadosPedidoMesa,
-                          quantidadeDePessoasNaMesa: e.target.value,
+                          QtdePessoasNaMesa: e.target.value,
                         })
                       }
                     />
@@ -793,7 +824,6 @@ export const Tables = () => {
                         width: "6rem",
                         height: "1.5rem",
                       }}
-                      s
                       onClick={() => {
                         setEditPeopleCount(false);
                       }}
@@ -803,8 +833,9 @@ export const Tables = () => {
                   </>
                 ) : (
                   <>
-                    {dadosPedidoMesa?.quantidadeDePessoasNaMesa ?? "N/A"}
+                    {dadosPedidoMesa?.QtdePessoasNaMesa ?? "N/A"}
                     <EditIcon
+                      titleAccess="Editar"
                       variant="outlined"
                       color="primary"
                       sx={{
@@ -837,7 +868,7 @@ export const Tables = () => {
                     dadosPedidoMesa.Pedido.reduce((total, item) => {
                       return (
                         total +
-                        Number(item.item.valor) +
+                        Number(item.valor) +
                         Number(item.Valoropcional) +
                         calcularSomaValoresAdicionais(item.adicional)
                       );
